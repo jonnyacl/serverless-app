@@ -12,9 +12,9 @@ exports.go = async (event, context) => {
     };
     let apikey = await apigateway.createApiKey(keyParams).promise();
     // get usage plan ID
-    const uPlans = await apigateway.getUsagePlans().promise();
+    const uPlans = await apigateway.getUsagePlans({ limit: 100 }).promise();
     const uPlan = uPlans.items.filter(plan => {
-        plan.name === process.env.USAGE_PLAN;
+        return plan.name === process.env.USAGE_PLAN;
     });
     if (uPlan.length == 1) {
         //add it to the usage plan
