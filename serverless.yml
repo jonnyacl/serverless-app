@@ -1,0 +1,163 @@
+service: ${opt:app}
+
+provider:
+  name: aws
+  stage: ${opt:stage, 'v1'}
+  region: eu-west-1
+  runtime: nodejs10.x
+
+package:
+  individually: true
+  exclude:
+    - node_modules/**
+    - config-dev.yml
+    - config-qa.yml
+    - config-prod.yml
+    - config-stg.yml
+    - package-lock.json
+    - README.md
+    - models/**
+    - templates/**
+    - .vscode/**
+    - .git**
+
+functions:
+  - ${file(authorizers/auth.yml)}
+  - ${file(functions/cognito/cognito.yml)}
+  - getBanks:
+      handler: functions/banks.getBanks
+      description: Retrieve banks to display
+      role: ${file(config-${opt:confile}.yml):lambdaArn}
+      name: getBanks
+      events:
+        - http:
+            integration: lambda
+            path: /
+            method: get
+            cors:
+              origin: '*'
+              headers: 
+                - Content-Type
+                - Authorization
+                - X-Api-Key
+              methods:
+                - GET
+                - OPTIONS
+            private: true
+            headers:
+              - Content-Type
+              - Authorization
+              - X-Api-Key
+            authorizer:
+              name: appAuthorizer
+              identitySource: method.request.header.Authorization
+              resultTtlInSeconds: 0
+              type: token
+            request:
+              headers:
+                Content-Type: true
+                X-Api-Key: true
+              parameters:
+                querystrings:
+                  pg: false
+              template:
+                application/json: ${file(templates/MethodRequestPassthrough)}
+              passThrough: WHEN_NO_TEMPLATES
+            response:
+              headers:
+                Access-Control-Allow-Origin: "'*'"
+              statusCodes:
+                200:
+                  pattern: '' # Default response method
+                400:
+                  pattern: '.*Invalid.*'
+                  template: ${file(templates/ErrorResponse)}
+      package:
+        include:
+          - functions/banks.js
+        exclude:
+          - functions/*.yml
+          - functions/cognito/**
+          - authorizers/**
+
+plugins:
+  - serverless-aws-documentation
+
+custom:
+  documentation:
+    models:
+      -
+        name: "NewAppModel"
+        description: "New app model"
+        contentType: "application/json"
+        schema: ${file(models/newappmodel.json)}
+      -
+        name: "UpdateAppModel"
+        description: "Model for updateing"
+        contentType: "application/json"
+        schema: ${file(models/updateappmodel.json)}
+
+resources:
+  Resources:
+    ApiGatewayRestApi:
+      Type: AWS::ApiGateway::RestApi
+      Properties:
+        Name: ${opt:app}AppApi
+    CognitoUserPoolAppPool:
+      Type: AWS::Cognito::UserPool
+      Properties:
+        UserPoolName: ${opt:app}AppUserPool
+        UsernameAttributes:
+          - email
+        AutoVerifiedAttributes:
+          - email
+    AppPoolClient:
+      Type: AWS::Cognito::UserPoolClient
+      Properties:
+        # Generate an app client name based on the stage
+        ClientName: ${opt:app}AppUserPoolClient
+        UserPoolId:
+          Ref: CognitoUserPoolAppPool
+        ExplicitAuthFlows:
+          - ADMIN_NO_SRP_AUTH
+        GenerateSecret: false
+    AppIdentityPool:
+      Type: AWS::Cognito::IdentityPool
+      Properties:
+        IdentityPoolName: ${opt:app}AppIdPool
+        AllowUnauthenticatedIdentities: false
+        CognitoIdentityProviders:
+          - ClientId:
+              Ref: AppPoolClient
+            ProviderName:
+              Fn::GetAtt: [ "CognitoUserPoolAppPool", "ProviderName" ]
+    AppTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${opt:app}AppKey
+        AttributeDefinitions:
+          - AttributeName: user
+            AttributeType: S
+        KeySchema:
+          - AttributeName: user
+            KeyType: HASH
+        BillingMode: PAY_PER_REQUEST
+    AppUsagePlan:
+      Type: AWS::ApiGateway::UsagePlan
+      Properties:
+        ApiStages:
+        - ApiId:
+            Ref: ApiGatewayRestApi
+          Stage: ${opt:stage, 'v1'}
+        Description: ${opt:app} app usage plan
+        UsagePlanName: ${opt:app}AppUsagePlan
+
+outputs:
+  UserPoolId:
+    Value:
+      Ref: CognitoUserPoolAppPool
+  UserPoolClientId:
+    Value:
+      Ref: AppPoolClient
+
+

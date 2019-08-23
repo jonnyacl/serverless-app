@@ -1,0 +1,5 @@
+appAuthorizer:
+  handler: authorizers/appAuth.authorise
+  name: serverless${opt:app}AppAuthorizer
+  description: authorizer for app
+  role: ${file(config-${opt:confile}.yml):lambdaArn}

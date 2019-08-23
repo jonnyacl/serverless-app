@@ -1,0 +1,1023 @@
+{
+  "service": {
+    "service": "Example",
+    "serviceObject": {
+      "name": "Example"
+    },
+    "provider": {
+      "stage": "v1",
+      "variableSyntax": "\\${([ ~:a-zA-Z0-9._@'\",\\-\\/\\(\\)*]+?)}",
+      "name": "aws",
+      "region": "eu-west-1",
+      "runtime": "nodejs10.x",
+      "versionFunctions": true,
+      "remoteFunctionData": null,
+      "compiledCloudFormationTemplate": {
+        "AWSTemplateFormatVersion": "2010-09-09",
+        "Description": "The AWS CloudFormation template for this Serverless application",
+        "Resources": {
+          "ServerlessDeploymentBucket": {
+            "Type": "AWS::S3::Bucket",
+            "Properties": {
+              "BucketEncryption": {
+                "ServerSideEncryptionConfiguration": [
+                  {
+                    "ServerSideEncryptionByDefault": {
+                      "SSEAlgorithm": "AES256"
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "AppAuthorizerLogGroup": {
+            "Type": "AWS::Logs::LogGroup",
+            "Properties": {
+              "LogGroupName": "/aws/lambda/serverlessExampleAppAuthorizer"
+            }
+          },
+          "CreateTokenLogGroup": {
+            "Type": "AWS::Logs::LogGroup",
+            "Properties": {
+              "LogGroupName": "/aws/lambda/createExampleAppToken"
+            }
+          },
+          "RetrieveTokenLogGroup": {
+            "Type": "AWS::Logs::LogGroup",
+            "Properties": {
+              "LogGroupName": "/aws/lambda/retrieveExampleAppToken"
+            }
+          },
+          "GetBanksLogGroup": {
+            "Type": "AWS::Logs::LogGroup",
+            "Properties": {
+              "LogGroupName": "/aws/lambda/getBanks"
+            }
+          },
+          "AppAuthorizerLambdaFunction": {
+            "Type": "AWS::Lambda::Function",
+            "Properties": {
+              "Code": {
+                "S3Bucket": {
+                  "Ref": "ServerlessDeploymentBucket"
+                },
+                "S3Key": "serverless/Example/v1/1566555585771-2019-08-23T10:19:45.771Z/appAuthorizer.zip"
+              },
+              "FunctionName": "serverlessExampleAppAuthorizer",
+              "Handler": "authorizers/appAuth.authorise",
+              "MemorySize": 1024,
+              "Role": "arn:aws:iam::319909616554:role/API-Lambda-Role",
+              "Runtime": "nodejs10.x",
+              "Timeout": 6,
+              "Description": "authorizer for app"
+            },
+            "DependsOn": [
+              "AppAuthorizerLogGroup"
+            ]
+          },
+          "AppAuthorizerLambdaVersionloSvo5oIwMwRCnFd6t7ffVkRWHliFdDhCH5p2VpKI": {
+            "Type": "AWS::Lambda::Version",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+              "FunctionName": {
+                "Ref": "AppAuthorizerLambdaFunction"
+              },
+              "CodeSha256": "irhdgDDTwfrNKLbcYyQzr1WAKlFD9FUrzs8NUzH63BE=",
+              "Description": "authorizer for app"
+            }
+          },
+          "CreateTokenLambdaFunction": {
+            "Type": "AWS::Lambda::Function",
+            "Properties": {
+              "Code": {
+                "S3Bucket": {
+                  "Ref": "ServerlessDeploymentBucket"
+                },
+                "S3Key": "serverless/Example/v1/1566555585771-2019-08-23T10:19:45.771Z/createToken.zip"
+              },
+              "FunctionName": "createExampleAppToken",
+              "Handler": "functions/cognito/createToken.go",
+              "MemorySize": 1024,
+              "Role": "arn:aws:iam::319909616554:role/API-Lambda-Role",
+              "Runtime": "nodejs10.x",
+              "Timeout": 6,
+              "Description": "create a token and add to usage plan for app's api",
+              "Environment": {
+                "Variables": {
+                  "USAGE_PLAN": "ExampleAppUsagePlan",
+                  "APP_KEY_TABLE": "ExampleAppKey"
+                }
+              }
+            },
+            "DependsOn": [
+              "CreateTokenLogGroup"
+            ]
+          },
+          "CreateTokenLambdaVersion9x1AtKkOkGLH9irL4FhXgYbSeY3img8ysaZlTcFDYk": {
+            "Type": "AWS::Lambda::Version",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+              "FunctionName": {
+                "Ref": "CreateTokenLambdaFunction"
+              },
+              "CodeSha256": "wxmlcMNUIl9aI8ycfhiI+bp9Lx5Cgm/pnHxhE2enDso=",
+              "Description": "create a token and add to usage plan for app's api"
+            }
+          },
+          "RetrieveTokenLambdaFunction": {
+            "Type": "AWS::Lambda::Function",
+            "Properties": {
+              "Code": {
+                "S3Bucket": {
+                  "Ref": "ServerlessDeploymentBucket"
+                },
+                "S3Key": "serverless/Example/v1/1566555585771-2019-08-23T10:19:45.771Z/retrieveToken.zip"
+              },
+              "FunctionName": "retrieveExampleAppToken",
+              "Handler": "functions/cognito/getToken.go",
+              "MemorySize": 1024,
+              "Role": "arn:aws:iam::319909616554:role/API-Lambda-Role",
+              "Runtime": "nodejs10.x",
+              "Timeout": 6,
+              "Description": "retrieve token for app user",
+              "Environment": {
+                "Variables": {
+                  "USAGE_PLAN": "ExampleAppUsagePlan",
+                  "APP_KEY_TABLE": "ExampleAppKey"
+                }
+              }
+            },
+            "DependsOn": [
+              "RetrieveTokenLogGroup"
+            ]
+          },
+          "RetrieveTokenLambdaVersionR0jzV9xHkGiCJsuYfrRZznhSJA7kceeKLBUZStRKW0": {
+            "Type": "AWS::Lambda::Version",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+              "FunctionName": {
+                "Ref": "RetrieveTokenLambdaFunction"
+              },
+              "CodeSha256": "q2tIqSNc8H/ziSFySsuObjRtfqpXwTbWCvz/73PTxzE=",
+              "Description": "retrieve token for app user"
+            }
+          },
+          "GetBanksLambdaFunction": {
+            "Type": "AWS::Lambda::Function",
+            "Properties": {
+              "Code": {
+                "S3Bucket": {
+                  "Ref": "ServerlessDeploymentBucket"
+                },
+                "S3Key": "serverless/Example/v1/1566555585771-2019-08-23T10:19:45.771Z/getBanks.zip"
+              },
+              "FunctionName": "getBanks",
+              "Handler": "functions/banks.getBanks",
+              "MemorySize": 1024,
+              "Role": "arn:aws:iam::319909616554:role/API-Lambda-Role",
+              "Runtime": "nodejs10.x",
+              "Timeout": 6,
+              "Description": "Retrieve banks to display"
+            },
+            "DependsOn": [
+              "GetBanksLogGroup"
+            ]
+          },
+          "GetBanksLambdaVersion101gLhQA6dF0gNj2vj43aAleUGtGq4NtAEtyIvNvE": {
+            "Type": "AWS::Lambda::Version",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+              "FunctionName": {
+                "Ref": "GetBanksLambdaFunction"
+              },
+              "CodeSha256": "gyY/OJkgsOthKY7x00eWGe1JPV02Snytmr4UYC42bH8=",
+              "Description": "Retrieve banks to display"
+            }
+          },
+          "ApiGatewayRestApi": {
+            "Type": "AWS::ApiGateway::RestApi",
+            "Properties": {
+              "Name": "ExampleAppApi",
+              "EndpointConfiguration": {
+                "Types": [
+                  "EDGE"
+                ]
+              }
+            }
+          },
+          "ApiGatewayMethodOptions": {
+            "Type": "AWS::ApiGateway::Method",
+            "Properties": {
+              "AuthorizationType": "NONE",
+              "HttpMethod": "OPTIONS",
+              "MethodResponses": [
+                {
+                  "StatusCode": "200",
+                  "ResponseParameters": {
+                    "method.response.header.Access-Control-Allow-Origin": true,
+                    "method.response.header.Access-Control-Allow-Headers": true,
+                    "method.response.header.Access-Control-Allow-Methods": true,
+                    "method.response.header.Access-Control-Allow-Credentials": true
+                  },
+                  "ResponseModels": {}
+                }
+              ],
+              "RequestParameters": {},
+              "Integration": {
+                "Type": "MOCK",
+                "RequestTemplates": {
+                  "application/json": "{statusCode:200}"
+                },
+                "ContentHandling": "CONVERT_TO_TEXT",
+                "IntegrationResponses": [
+                  {
+                    "StatusCode": "200",
+                    "ResponseParameters": {
+                      "method.response.header.Access-Control-Allow-Origin": "'*'",
+                      "method.response.header.Access-Control-Allow-Headers": "'Content-Type,Authorization,X-Api-Key'",
+                      "method.response.header.Access-Control-Allow-Methods": "'GET,OPTIONS'",
+                      "method.response.header.Access-Control-Allow-Credentials": "'false'"
+                    },
+                    "ResponseTemplates": {
+                      "application/json": ""
+                    }
+                  }
+                ]
+              },
+              "ResourceId": {
+                "Fn::GetAtt": [
+                  "ApiGatewayRestApi",
+                  "RootResourceId"
+                ]
+              },
+              "RestApiId": {
+                "Ref": "ApiGatewayRestApi"
+              }
+            }
+          },
+          "ApiGatewayMethodGet": {
+            "Type": "AWS::ApiGateway::Method",
+            "Properties": {
+              "HttpMethod": "GET",
+              "RequestParameters": {
+                "method.request.querystring.pg": false
+              },
+              "ResourceId": {
+                "Fn::GetAtt": [
+                  "ApiGatewayRestApi",
+                  "RootResourceId"
+                ]
+              },
+              "RestApiId": {
+                "Ref": "ApiGatewayRestApi"
+              },
+              "ApiKeyRequired": true,
+              "AuthorizationType": "CUSTOM",
+              "AuthorizerId": {
+                "Ref": "AppAuthorizerApiGatewayAuthorizer"
+              },
+              "Integration": {
+                "IntegrationHttpMethod": "POST",
+                "Type": "AWS",
+                "Uri": {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:",
+                      {
+                        "Ref": "AWS::Partition"
+                      },
+                      ":apigateway:",
+                      {
+                        "Ref": "AWS::Region"
+                      },
+                      ":lambda:path/2015-03-31/functions/",
+                      {
+                        "Fn::GetAtt": [
+                          "GetBanksLambdaFunction",
+                          "Arn"
+                        ]
+                      },
+                      "/invocations"
+                    ]
+                  ]
+                },
+                "PassthroughBehavior": "WHEN_NO_TEMPLATES",
+                "RequestTemplates": {
+                  "application/json": "##  See http://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-mapping-template-reference.html\n##  This template will pass through all parameters including path, querystring, header, stage variables, and context through to the integration endpoint via the body/payload\n#set($allParams = $input.params())\n{\n\"body-json\" : $input.json('$'),\n\"params\" : {\n#foreach($type in $allParams.keySet())\n    #set($params = $allParams.get($type))\n\"$type\" : {\n    #foreach($paramName in $params.keySet())\n    \"$paramName\" : \"$util.escapeJavaScript($params.get($paramName))\"\n        #if($foreach.hasNext),#end\n    #end\n}\n    #if($foreach.hasNext),#end\n#end\n},\n\"stage-variables\" : {\n#foreach($key in $stageVariables.keySet())\n\"$key\" : \"$util.escapeJavaScript($stageVariables.get($key))\"\n    #if($foreach.hasNext),#end\n#end\n},\n\"context\" : {\n    \"account-id\" : \"$context.identity.accountId\",\n    \"api-id\" : \"$context.apiId\",\n    \"api-key\" : \"$context.identity.apiKey\",\n    \"authorizer-principal-id\" : \"$context.authorizer.principalId\",\n    \"caller\" : \"$context.identity.caller\",\n    \"cognito-authentication-provider\" : \"$context.identity.cognitoAuthenticationProvider\",\n    \"cognito-authentication-type\" : \"$context.identity.cognitoAuthenticationType\",\n    \"cognito-identity-id\" : \"$context.identity.cognitoIdentityId\",\n    \"cognito-identity-pool-id\" : \"$context.identity.cognitoIdentityPoolId\",\n    \"http-method\" : \"$context.httpMethod\",\n    \"stage\" : \"$context.stage\",\n    \"source-ip\" : \"$context.identity.sourceIp\",\n    \"user\" : \"$context.identity.user\",\n    \"user-agent\" : \"$context.identity.userAgent\",\n    \"user-arn\" : \"$context.identity.userArn\",\n    \"request-id\" : \"$context.requestId\",\n    \"resource-id\" : \"$context.resourceId\",\n    \"resource-path\" : \"$context.resourcePath\"\n    }\n}",
+                  "application/x-www-form-urlencoded": "\n    #define( $body )\n      {\n      #foreach( $token in $input.path('$').split('&') )\n        #set( $keyVal = $token.split('=') )\n        #set( $keyValSize = $keyVal.size() )\n        #if( $keyValSize >= 1 )\n          #set( $key = $util.escapeJavaScript($util.urlDecode($keyVal[0])) )\n          #if( $keyValSize >= 2 )\n            #set($val = $util.escapeJavaScript($util.urlDecode($keyVal[1])).replaceAll(\"\\\\'\",\"'\"))\n          #else\n            #set( $val = '' )\n          #end\n          \"$key\": \"$val\"#if($foreach.hasNext),#end\n        #end\n      #end\n      }\n    #end\n\n    \n  #define( $loop )\n    {\n    #foreach($key in $map.keySet())\n        #set( $k = $util.escapeJavaScript($key) )\n        #set( $v = $util.escapeJavaScript($map.get($key)).replaceAll(\"\\\\'\", \"'\") )\n        \"$k\":\n          \"$v\"\n          #if( $foreach.hasNext ) , #end\n    #end\n    }\n  #end\n\n  {\n    \"body\": $body,\n    \"method\": \"$context.httpMethod\",\n    \"principalId\": \"$context.authorizer.principalId\",\n    \"stage\": \"$context.stage\",\n\n    \"cognitoPoolClaims\" : {\n       \n       \"sub\": \"$context.authorizer.claims.sub\"\n    },\n\n    #set( $map = $context.authorizer )\n    \"enhancedAuthContext\": $loop,\n\n    #set( $map = $input.params().header )\n    \"headers\": $loop,\n\n    #set( $map = $input.params().querystring )\n    \"query\": $loop,\n\n    #set( $map = $input.params().path )\n    \"path\": $loop,\n\n    #set( $map = $context.identity )\n    \"identity\": $loop,\n\n    #set( $map = $stageVariables )\n    \"stageVariables\": $loop,\n\n    \"requestPath\": \"$context.resourcePath\"\n  }\n\n  "
+                },
+                "IntegrationResponses": [
+                  {
+                    "StatusCode": 200,
+                    "SelectionPattern": "",
+                    "ResponseParameters": {
+                      "method.response.header.Access-Control-Allow-Origin": "'*'"
+                    },
+                    "ResponseTemplates": {}
+                  },
+                  {
+                    "StatusCode": 400,
+                    "SelectionPattern": ".*Invalid.*",
+                    "ResponseParameters": {
+                      "method.response.header.Access-Control-Allow-Origin": "'*'"
+                    },
+                    "ResponseTemplates": {
+                      "application/json": "{\n    \"error\" : $input.json('$.errorMessage')\n}"
+                    }
+                  }
+                ],
+                "RequestParameters": {
+                  "integration.request.querystring.pg": "method.request.querystring.pg"
+                }
+              },
+              "MethodResponses": [
+                {
+                  "ResponseParameters": {
+                    "method.response.header.Access-Control-Allow-Origin": true
+                  },
+                  "ResponseModels": {},
+                  "StatusCode": 200
+                },
+                {
+                  "ResponseParameters": {
+                    "method.response.header.Access-Control-Allow-Origin": true
+                  },
+                  "ResponseModels": {},
+                  "StatusCode": 400
+                }
+              ]
+            },
+            "DependsOn": "AppAuthorizerApiGatewayAuthorizer"
+          },
+          "AppAuthorizerApiGatewayAuthorizer": {
+            "Type": "AWS::ApiGateway::Authorizer",
+            "Properties": {
+              "AuthorizerResultTtlInSeconds": 0,
+              "IdentitySource": "method.request.header.Authorization",
+              "Name": "appAuthorizer",
+              "RestApiId": {
+                "Ref": "ApiGatewayRestApi"
+              },
+              "AuthorizerUri": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:",
+                    {
+                      "Ref": "AWS::Partition"
+                    },
+                    ":apigateway:",
+                    {
+                      "Ref": "AWS::Region"
+                    },
+                    ":lambda:path/2015-03-31/functions/",
+                    {
+                      "Fn::GetAtt": [
+                        "AppAuthorizerLambdaFunction",
+                        "Arn"
+                      ]
+                    },
+                    "/invocations"
+                  ]
+                ]
+              },
+              "Type": "TOKEN"
+            }
+          },
+          "ApiGatewayDeployment1566555585102": {
+            "Type": "AWS::ApiGateway::Deployment",
+            "Properties": {
+              "RestApiId": {
+                "Ref": "ApiGatewayRestApi"
+              },
+              "StageName": "v1"
+            },
+            "DependsOn": [
+              "ApiGatewayMethodOptions",
+              "ApiGatewayMethodGet"
+            ]
+          },
+          "GetBanksLambdaPermissionApiGateway": {
+            "Type": "AWS::Lambda::Permission",
+            "Properties": {
+              "FunctionName": {
+                "Fn::GetAtt": [
+                  "GetBanksLambdaFunction",
+                  "Arn"
+                ]
+              },
+              "Action": "lambda:InvokeFunction",
+              "Principal": "apigateway.amazonaws.com",
+              "SourceArn": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:",
+                    {
+                      "Ref": "AWS::Partition"
+                    },
+                    ":execute-api:",
+                    {
+                      "Ref": "AWS::Region"
+                    },
+                    ":",
+                    {
+                      "Ref": "AWS::AccountId"
+                    },
+                    ":",
+                    {
+                      "Ref": "ApiGatewayRestApi"
+                    },
+                    "/*/*"
+                  ]
+                ]
+              }
+            }
+          },
+          "AppAuthorizerLambdaPermissionApiGateway": {
+            "Type": "AWS::Lambda::Permission",
+            "Properties": {
+              "FunctionName": {
+                "Fn::GetAtt": [
+                  "AppAuthorizerLambdaFunction",
+                  "Arn"
+                ]
+              },
+              "Action": "lambda:InvokeFunction",
+              "Principal": "apigateway.amazonaws.com"
+            }
+          },
+          "CognitoUserPoolAppPool": {
+            "Type": "AWS::Cognito::UserPool",
+            "Properties": {
+              "UserPoolName": "ExampleAppUserPool",
+              "LambdaConfig": {
+                "PostConfirmation": {
+                  "Fn::GetAtt": [
+                    "CreateTokenLambdaFunction",
+                    "Arn"
+                  ]
+                },
+                "PreTokenGeneration": {
+                  "Fn::GetAtt": [
+                    "RetrieveTokenLambdaFunction",
+                    "Arn"
+                  ]
+                }
+              },
+              "UsernameAttributes": [
+                "email"
+              ],
+              "AutoVerifiedAttributes": [
+                "email"
+              ]
+            },
+            "DependsOn": [
+              "CreateTokenLambdaFunction",
+              "RetrieveTokenLambdaFunction"
+            ]
+          },
+          "CreateTokenLambdaPermissionCognitoUserPoolAppPoolTriggerSourcePostConfirmation": {
+            "Type": "AWS::Lambda::Permission",
+            "Properties": {
+              "FunctionName": {
+                "Fn::GetAtt": [
+                  "CreateTokenLambdaFunction",
+                  "Arn"
+                ]
+              },
+              "Action": "lambda:InvokeFunction",
+              "Principal": "cognito-idp.amazonaws.com",
+              "SourceArn": {
+                "Fn::GetAtt": [
+                  "CognitoUserPoolAppPool",
+                  "Arn"
+                ]
+              }
+            }
+          },
+          "RetrieveTokenLambdaPermissionCognitoUserPoolAppPoolTriggerSourcePreTokenGeneration": {
+            "Type": "AWS::Lambda::Permission",
+            "Properties": {
+              "FunctionName": {
+                "Fn::GetAtt": [
+                  "RetrieveTokenLambdaFunction",
+                  "Arn"
+                ]
+              },
+              "Action": "lambda:InvokeFunction",
+              "Principal": "cognito-idp.amazonaws.com",
+              "SourceArn": {
+                "Fn::GetAtt": [
+                  "CognitoUserPoolAppPool",
+                  "Arn"
+                ]
+              }
+            }
+          },
+          "NewAppModelModel": {
+            "Type": "AWS::ApiGateway::Model",
+            "Properties": {
+              "RestApiId": {
+                "Ref": "ApiGatewayRestApi"
+              },
+              "ContentType": "application/json",
+              "Name": "NewAppModel",
+              "Schema": {
+                "type": "object",
+                "properties": {
+                  "userName": {
+                    "type": "string"
+                  },
+                  "appName": {
+                    "type": "string"
+                  },
+                  "appConfig": {
+                    "type": "number"
+                  },
+                  "appUrl": {
+                    "type": "string"
+                  },
+                  "partnerName": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          },
+          "UpdateAppModelModel": {
+            "Type": "AWS::ApiGateway::Model",
+            "Properties": {
+              "RestApiId": {
+                "$ref": "$[\"service\"][\"provider\"][\"compiledCloudFormationTemplate\"][\"Resources\"][\"NewAppModelModel\"][\"Properties\"][\"RestApiId\"]"
+              },
+              "ContentType": "application/json",
+              "Name": "UpdateAppModel",
+              "Schema": {
+                "type": "object",
+                "properties": {
+                  "app_id": {
+                    "type": "string"
+                  },
+                  "app_url": {
+                    "type": "string"
+                  },
+                  "bank_api_status": {
+                    "type": "string"
+                  },
+                  "accounting_api_status": {
+                    "type": "string"
+                  },
+                  "app_status": {
+                    "type": "string"
+                  },
+                  "partner_id": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          },
+          "AppPoolClient": {
+            "Type": "AWS::Cognito::UserPoolClient",
+            "Properties": {
+              "ClientName": "ExampleAppUserPoolClient",
+              "UserPoolId": {
+                "Ref": "CognitoUserPoolAppPool"
+              },
+              "ExplicitAuthFlows": [
+                "ADMIN_NO_SRP_AUTH"
+              ],
+              "GenerateSecret": false
+            }
+          },
+          "AppIdentityPool": {
+            "Type": "AWS::Cognito::IdentityPool",
+            "Properties": {
+              "IdentityPoolName": "ExampleAppIdPool",
+              "AllowUnauthenticatedIdentities": false,
+              "CognitoIdentityProviders": [
+                {
+                  "ClientId": {
+                    "Ref": "AppPoolClient"
+                  },
+                  "ProviderName": {
+                    "Fn::GetAtt": [
+                      "CognitoUserPoolAppPool",
+                      "ProviderName"
+                    ]
+                  }
+                }
+              ]
+            }
+          },
+          "AppTable": {
+            "Type": "AWS::DynamoDB::Table",
+            "Properties": {
+              "TableName": "ExampleAppKey",
+              "AttributeDefinitions": [
+                {
+                  "AttributeName": "user",
+                  "AttributeType": "S"
+                }
+              ],
+              "KeySchema": [
+                {
+                  "AttributeName": "user",
+                  "KeyType": "HASH"
+                }
+              ],
+              "BillingMode": "PAY_PER_REQUEST"
+            }
+          },
+          "AppUsagePlan": {
+            "Type": "AWS::ApiGateway::UsagePlan",
+            "Properties": {
+              "ApiStages": [
+                {
+                  "ApiId": {
+                    "Ref": "ApiGatewayRestApi"
+                  },
+                  "Stage": "v1"
+                }
+              ],
+              "Description": "Example app usage plan",
+              "UsagePlanName": "ExampleAppUsagePlan"
+            }
+          }
+        },
+        "Outputs": {
+          "ServerlessDeploymentBucketName": {
+            "Value": {
+              "Ref": "ServerlessDeploymentBucket"
+            }
+          },
+          "AppAuthorizerLambdaFunctionQualifiedArn": {
+            "Description": "Current Lambda function version",
+            "Value": {
+              "Ref": "AppAuthorizerLambdaVersionloSvo5oIwMwRCnFd6t7ffVkRWHliFdDhCH5p2VpKI"
+            }
+          },
+          "CreateTokenLambdaFunctionQualifiedArn": {
+            "Description": "Current Lambda function version",
+            "Value": {
+              "Ref": "CreateTokenLambdaVersion9x1AtKkOkGLH9irL4FhXgYbSeY3img8ysaZlTcFDYk"
+            }
+          },
+          "RetrieveTokenLambdaFunctionQualifiedArn": {
+            "Description": "Current Lambda function version",
+            "Value": {
+              "Ref": "RetrieveTokenLambdaVersionR0jzV9xHkGiCJsuYfrRZznhSJA7kceeKLBUZStRKW0"
+            }
+          },
+          "GetBanksLambdaFunctionQualifiedArn": {
+            "Description": "Current Lambda function version",
+            "Value": {
+              "Ref": "GetBanksLambdaVersion101gLhQA6dF0gNj2vj43aAleUGtGq4NtAEtyIvNvE"
+            }
+          },
+          "ServiceEndpoint": {
+            "Description": "URL of the service endpoint",
+            "Value": {
+              "Fn::Join": [
+                "",
+                [
+                  "https://",
+                  {
+                    "Ref": "ApiGatewayRestApi"
+                  },
+                  ".execute-api.",
+                  {
+                    "Ref": "AWS::Region"
+                  },
+                  ".",
+                  {
+                    "Ref": "AWS::URLSuffix"
+                  },
+                  "/v1"
+                ]
+              ]
+            }
+          },
+          "AwsDocApiId": {
+            "Description": "API ID",
+            "Value": {
+              "$ref": "$[\"service\"][\"provider\"][\"compiledCloudFormationTemplate\"][\"Resources\"][\"NewAppModelModel\"][\"Properties\"][\"RestApiId\"]"
+            }
+          }
+        }
+      },
+      "coreCloudFormationTemplate": {
+        "AWSTemplateFormatVersion": "2010-09-09",
+        "Description": "The AWS CloudFormation template for this Serverless application",
+        "Resources": {
+          "ServerlessDeploymentBucket": {
+            "Type": "AWS::S3::Bucket",
+            "Properties": {
+              "BucketEncryption": {
+                "ServerSideEncryptionConfiguration": [
+                  {
+                    "ServerSideEncryptionByDefault": {
+                      "SSEAlgorithm": "AES256"
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "Outputs": {
+          "ServerlessDeploymentBucketName": {
+            "Value": {
+              "Ref": "ServerlessDeploymentBucket"
+            }
+          }
+        }
+      },
+      "vpc": {}
+    },
+    "custom": {
+      "documentation": {
+        "models": [
+          {
+            "name": "NewAppModel",
+            "description": "New app model",
+            "contentType": "application/json",
+            "schema": {
+              "$ref": "$[\"service\"][\"provider\"][\"compiledCloudFormationTemplate\"][\"Resources\"][\"NewAppModelModel\"][\"Properties\"][\"Schema\"]"
+            }
+          },
+          {
+            "name": "UpdateAppModel",
+            "description": "Model for updateing",
+            "contentType": "application/json",
+            "schema": {
+              "$ref": "$[\"service\"][\"provider\"][\"compiledCloudFormationTemplate\"][\"Resources\"][\"UpdateAppModelModel\"][\"Properties\"][\"Schema\"]"
+            }
+          }
+        ]
+      }
+    },
+    "plugins": [
+      "serverless-aws-documentation"
+    ],
+    "pluginsData": {},
+    "functions": {
+      "appAuthorizer": {
+        "handler": "authorizers/appAuth.authorise",
+        "name": "serverlessExampleAppAuthorizer",
+        "description": "authorizer for app",
+        "role": "arn:aws:iam::319909616554:role/API-Lambda-Role",
+        "events": [],
+        "package": {
+          "artifact": "/Users/jonny/Code/example-app-sls/.serverless/appAuthorizer.zip"
+        },
+        "memory": 1024,
+        "timeout": 6,
+        "runtime": "nodejs10.x",
+        "vpc": {}
+      },
+      "createToken": {
+        "handler": "functions/cognito/createToken.go",
+        "name": "createExampleAppToken",
+        "description": "create a token and add to usage plan for app's api",
+        "role": "arn:aws:iam::319909616554:role/API-Lambda-Role",
+        "environment": {
+          "USAGE_PLAN": "ExampleAppUsagePlan",
+          "APP_KEY_TABLE": "ExampleAppKey"
+        },
+        "events": [
+          {
+            "cognitoUserPool": {
+              "pool": "AppPool",
+              "trigger": "PostConfirmation"
+            }
+          }
+        ],
+        "package": {
+          "artifact": "/Users/jonny/Code/example-app-sls/.serverless/createToken.zip"
+        },
+        "memory": 1024,
+        "timeout": 6,
+        "runtime": "nodejs10.x",
+        "vpc": {}
+      },
+      "retrieveToken": {
+        "handler": "functions/cognito/getToken.go",
+        "name": "retrieveExampleAppToken",
+        "description": "retrieve token for app user",
+        "role": "arn:aws:iam::319909616554:role/API-Lambda-Role",
+        "environment": {
+          "USAGE_PLAN": "ExampleAppUsagePlan",
+          "APP_KEY_TABLE": "ExampleAppKey"
+        },
+        "events": [
+          {
+            "cognitoUserPool": {
+              "pool": "AppPool",
+              "trigger": "PreTokenGeneration"
+            }
+          }
+        ],
+        "package": {
+          "artifact": "/Users/jonny/Code/example-app-sls/.serverless/retrieveToken.zip"
+        },
+        "memory": 1024,
+        "timeout": 6,
+        "runtime": "nodejs10.x",
+        "vpc": {}
+      },
+      "getBanks": {
+        "handler": "functions/banks.getBanks",
+        "description": "Retrieve banks to display",
+        "role": "arn:aws:iam::319909616554:role/API-Lambda-Role",
+        "name": "getBanks",
+        "events": [
+          {
+            "http": {
+              "integration": "AWS",
+              "path": "",
+              "method": "get",
+              "cors": {
+                "origin": "*",
+                "headers": [
+                  "Content-Type",
+                  "Authorization",
+                  "X-Api-Key"
+                ],
+                "methods": [
+                  "GET",
+                  "OPTIONS"
+                ],
+                "allowCredentials": false
+              },
+              "private": true,
+              "headers": [
+                "Content-Type",
+                "Authorization",
+                "X-Api-Key"
+              ],
+              "authorizer": {
+                "type": "token",
+                "name": "appAuthorizer",
+                "arn": {
+                  "Fn::GetAtt": [
+                    "AppAuthorizerLambdaFunction",
+                    "Arn"
+                  ]
+                },
+                "resultTtlInSeconds": 0,
+                "identitySource": "method.request.header.Authorization",
+                "claims": []
+              },
+              "request": {
+                "headers": {
+                  "Content-Type": true,
+                  "X-Api-Key": true
+                },
+                "parameters": {
+                  "method.request.querystring.pg": false
+                },
+                "template": {
+                  "application/json": "##  See http://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-mapping-template-reference.html\n##  This template will pass through all parameters including path, querystring, header, stage variables, and context through to the integration endpoint via the body/payload\n#set($allParams = $input.params())\n{\n\"body-json\" : $input.json('$'),\n\"params\" : {\n#foreach($type in $allParams.keySet())\n    #set($params = $allParams.get($type))\n\"$type\" : {\n    #foreach($paramName in $params.keySet())\n    \"$paramName\" : \"$util.escapeJavaScript($params.get($paramName))\"\n        #if($foreach.hasNext),#end\n    #end\n}\n    #if($foreach.hasNext),#end\n#end\n},\n\"stage-variables\" : {\n#foreach($key in $stageVariables.keySet())\n\"$key\" : \"$util.escapeJavaScript($stageVariables.get($key))\"\n    #if($foreach.hasNext),#end\n#end\n},\n\"context\" : {\n    \"account-id\" : \"$context.identity.accountId\",\n    \"api-id\" : \"$context.apiId\",\n    \"api-key\" : \"$context.identity.apiKey\",\n    \"authorizer-principal-id\" : \"$context.authorizer.principalId\",\n    \"caller\" : \"$context.identity.caller\",\n    \"cognito-authentication-provider\" : \"$context.identity.cognitoAuthenticationProvider\",\n    \"cognito-authentication-type\" : \"$context.identity.cognitoAuthenticationType\",\n    \"cognito-identity-id\" : \"$context.identity.cognitoIdentityId\",\n    \"cognito-identity-pool-id\" : \"$context.identity.cognitoIdentityPoolId\",\n    \"http-method\" : \"$context.httpMethod\",\n    \"stage\" : \"$context.stage\",\n    \"source-ip\" : \"$context.identity.sourceIp\",\n    \"user\" : \"$context.identity.user\",\n    \"user-agent\" : \"$context.identity.userAgent\",\n    \"user-arn\" : \"$context.identity.userArn\",\n    \"request-id\" : \"$context.requestId\",\n    \"resource-id\" : \"$context.resourceId\",\n    \"resource-path\" : \"$context.resourcePath\"\n    }\n}"
+                },
+                "passThrough": "WHEN_NO_TEMPLATES"
+              },
+              "response": {
+                "headers": {
+                  "Access-Control-Allow-Origin": "'*'"
+                },
+                "statusCodes": {
+                  "200": {
+                    "pattern": ""
+                  },
+                  "400": {
+                    "pattern": ".*Invalid.*",
+                    "template": "{\n    \"error\" : $input.json('$.errorMessage')\n}"
+                  }
+                }
+              }
+            }
+          }
+        ],
+        "package": {
+          "artifact": "/Users/jonny/Code/example-app-sls/.serverless/getBanks.zip"
+        },
+        "memory": 1024,
+        "timeout": 6,
+        "runtime": "nodejs10.x",
+        "vpc": {}
+      }
+    },
+    "resources": {
+      "Resources": {
+        "ApiGatewayRestApi": {
+          "Type": "AWS::ApiGateway::RestApi",
+          "Properties": {
+            "Name": "ExampleAppApi"
+          }
+        },
+        "CognitoUserPoolAppPool": {
+          "Type": "AWS::Cognito::UserPool",
+          "Properties": {
+            "UserPoolName": "ExampleAppUserPool",
+            "UsernameAttributes": [
+              "email"
+            ],
+            "AutoVerifiedAttributes": [
+              "email"
+            ]
+          }
+        },
+        "AppPoolClient": {
+          "Type": "AWS::Cognito::UserPoolClient",
+          "Properties": {
+            "ClientName": "ExampleAppUserPoolClient",
+            "UserPoolId": {
+              "Ref": "CognitoUserPoolAppPool"
+            },
+            "ExplicitAuthFlows": [
+              "ADMIN_NO_SRP_AUTH"
+            ],
+            "GenerateSecret": false
+          }
+        },
+        "AppIdentityPool": {
+          "Type": "AWS::Cognito::IdentityPool",
+          "Properties": {
+            "IdentityPoolName": "ExampleAppIdPool",
+            "AllowUnauthenticatedIdentities": false,
+            "CognitoIdentityProviders": [
+              {
+                "ClientId": {
+                  "Ref": "AppPoolClient"
+                },
+                "ProviderName": {
+                  "Fn::GetAtt": [
+                    "CognitoUserPoolAppPool",
+                    "ProviderName"
+                  ]
+                }
+              }
+            ]
+          }
+        },
+        "AppTable": {
+          "Type": "AWS::DynamoDB::Table",
+          "Properties": {
+            "TableName": "ExampleAppKey",
+            "AttributeDefinitions": [
+              {
+                "AttributeName": "user",
+                "AttributeType": "S"
+              }
+            ],
+            "KeySchema": [
+              {
+                "AttributeName": "user",
+                "KeyType": "HASH"
+              }
+            ],
+            "BillingMode": "PAY_PER_REQUEST"
+          }
+        },
+        "AppUsagePlan": {
+          "Type": "AWS::ApiGateway::UsagePlan",
+          "Properties": {
+            "ApiStages": [
+              {
+                "ApiId": {
+                  "Ref": "ApiGatewayRestApi"
+                },
+                "Stage": "v1"
+              }
+            ],
+            "Description": "Example app usage plan",
+            "UsagePlanName": "ExampleAppUsagePlan"
+          }
+        }
+      },
+      "Outputs": {}
+    },
+    "serviceFilename": "serverless.yml",
+    "layers": {},
+    "outputs": {
+      "UserPoolId": {
+        "Value": {
+          "Ref": "CognitoUserPoolAppPool"
+        }
+      },
+      "UserPoolClientId": {
+        "Value": {
+          "Ref": "AppPoolClient"
+        }
+      }
+    }
+  },
+  "package": {
+    "individually": true,
+    "artifactDirectoryName": "serverless/Example/v1/1566555585771-2019-08-23T10:19:45.771Z",
+    "artifact": ""
+  }
+}

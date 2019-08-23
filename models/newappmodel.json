@@ -1,0 +1,20 @@
+{
+  "type" : "object",
+  "properties" : {
+    "userName" : {
+      "type" : "string"
+    },
+    "appName" : {
+      "type" : "string"
+    },
+    "appConfig" : {
+      "type" : "number"
+    },
+    "appUrl" : {
+      "type" : "string"
+    },
+    "partnerName" : {
+      "type" : "string"
+    }
+  }
+}
