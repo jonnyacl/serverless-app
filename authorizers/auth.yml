@@ -1,5 +1,7 @@
 appAuthorizer:
   handler: authorizers/appAuth.authorise
-  name: serverless${opt:app}AppAuthorizer
+  name: ${opt:app}AppAuthorizer
   description: authorizer for app
+  environment:
+    APP_KEY_TABLE: ${opt:app}AppKey
   role: ${file(config-${opt:confile}.yml):lambdaArn}

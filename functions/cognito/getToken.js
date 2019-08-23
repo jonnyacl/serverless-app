@@ -1,4 +1,4 @@
-/*global AWS*/
+var AWS = require('aws-sdk');
 const dynamo = new AWS.DynamoDB().DocumentClient();
 
 exports.go = (event) => {

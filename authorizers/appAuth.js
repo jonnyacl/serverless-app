@@ -1,18 +1,18 @@
-/*global AWS*/
+var AWS = require('aws-sdk');
 const dynamo = new AWS.DynamoDB();
 
 exports.authorise = async (event) => {
     const headers = event['headers'];
     const user = headers['x-user'];
     const appKey = headers['x-api-key'];
-    const trueKey = getPortalKey(user);
+    const trueKey = getAppKey(user);
     if (trueKey.Item) {
-        if (trueKey['Item']['appkey'] == appKey) {
+        if (trueKey.Item.appKey == appKey) {
             // generate allowed policy
             return generatePolicy('user', 'Allow', event['methodArn'])
         }
     }   
-    throw Exception('Unauthorized')
+    throw new Error('Unauthorized');
 }
 
 // Generate an IAM policy
@@ -33,10 +33,12 @@ const generatePolicy = (principalId, effect, resource) => {
     return authResponse;
 }
 
-const getPortalKey = (user) => {
-    return dynamo.get_item(
-        Key={
-            'user': user,
+const getAppKey = (user) => {
+    var params = {
+        TableName: process.env.APP_KEY_TABLE,
+        Key: {
+            "user": user
         }
-    )
+    };
+    return dynamo.get(params);
 }

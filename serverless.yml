@@ -32,7 +32,7 @@ functions:
       events:
         - http:
             integration: lambda
-            path: /
+            path: /banks
             method: get
             cors:
               origin: '*'

@@ -5,7 +5,7 @@ createToken:
   role: ${file(config-${opt:confile}.yml):lambdaArn}
   environment:
     USAGE_PLAN: ${opt:app}AppUsagePlan
-    APP_KEY_TABLE:  ${opt:app}AppKey
+    APP_KEY_TABLE: ${opt:app}AppKey
   events:
     - cognitoUserPool:
         pool: AppPool
@@ -26,8 +26,7 @@ retrieveToken:
   description: retrieve token for app user
   role: ${file(config-${opt:confile}.yml):lambdaArn}
   environment:
-    USAGE_PLAN: ${opt:app}AppUsagePlan
-    APP_KEY_TABLE:  ${opt:app}AppKey
+    APP_KEY_TABLE: ${opt:app}AppKey
   events:
     - cognitoUserPool:
         pool: AppPool

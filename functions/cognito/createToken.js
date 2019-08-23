@@ -1,4 +1,4 @@
-/*global AWS*/
+var AWS = require('aws-sdk');
 const apigateway = new AWS.APIGateway();
 const dynamo = new AWS.DynamoDB();
 
