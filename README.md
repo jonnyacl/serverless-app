@@ -1,15 +1,11 @@
-# FRACTAL DEV PORTAL API
+# SERVERLESS CREATE APP API
 
 Serverless (https://serverless.com) project to create the API the Fractal Developer Portal uses to create, delete and modify apps. It also allows developers to request access to the live APIs.
 
 The Dev portal uses Cognito for user authentication and management. In order to give the logged in user access to the API via Cognito, the ```cognito.yml``` file defines the lambdas that cognito triggers on login/signup. These lambdas create and provide access tokens through cognito to the dev portal app allowing a logged in user access to the other dev portal API endpoints.
 
 ## Endpoints
-* ```GET /user/apps``` - retrieve all apps for a user
-* ```POST /user/apps``` - user triggered app creation
-* ```PUT /user/apps/{appId}``` - user triggered app modification, including requesting access to different APIs
-* ```DELETE /user/apps/{appId}``` - user triggered app deletion
-* ```POST /user/partner``` - user submitting their partner name, which must then be verified by an admin
+Defined in serverless.yml - Add these yourself when you know what endpoints other than login/signup your app will need to call.
 
 ## Creating a new API
 When a new Fractal partner API - both live and sandbox - is created, the app lambdas need to be modified to grant app access to these APIs.

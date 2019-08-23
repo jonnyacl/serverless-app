@@ -1,25 +1,33 @@
 var AWS = require('aws-sdk');
-const dynamo = new AWS.DynamoDB().DocumentClient();
+const dynamo = new AWS.DynamoDB();
 
-exports.go = (event) => {
-    const user = event['userName']
-    const appKey = getAppKey(user)
+exports.go = async (event, context) => {
+    const user = event['userName'];
+    console.log(`User ${user}`)
+    const appKey = await getAppKey(user);
+    
     if (appKey.Item) {
+        console.log(`appkey ${JSON.stringify(appKey.Item.appkey.S)}`)
         event["response"]["claimsOverrideDetails"] = {
             "claimsToAddOrOverride": {
-                "appkey": appKey.Item.appKey
-            }  
+                "appkey": appKey.Item.appkey.S
+            }
         }
+    } else {
+        throw new Error("Could not find app key");
     }
-    return event
+    context.done(null, event);
 }
 
-const getAppKey = (user) => {
+const getAppKey = async (user) => {
     var params = {
         TableName: process.env.APP_KEY_TABLE,
         Key: {
-            "user": user
+            "user": {
+                S: user
+            }
         }
     };
-    return dynamo.get(params);
+    const appKey = await dynamo.getItem(params).promise();
+    return appKey;
 }

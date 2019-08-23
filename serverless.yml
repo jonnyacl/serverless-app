@@ -24,6 +24,7 @@ package:
 functions:
   - ${file(authorizers/auth.yml)}
   - ${file(functions/cognito/cognito.yml)}
+  # Define all endpoints needed for the app
   - getBanks:
       handler: functions/banks.getBanks
       description: Retrieve banks to display
@@ -79,23 +80,6 @@ functions:
           - functions/*.yml
           - functions/cognito/**
           - authorizers/**
-
-plugins:
-  - serverless-aws-documentation
-
-custom:
-  documentation:
-    models:
-      -
-        name: "NewAppModel"
-        description: "New app model"
-        contentType: "application/json"
-        schema: ${file(models/newappmodel.json)}
-      -
-        name: "UpdateAppModel"
-        description: "Model for updateing"
-        contentType: "application/json"
-        schema: ${file(models/updateappmodel.json)}
 
 resources:
   Resources:
