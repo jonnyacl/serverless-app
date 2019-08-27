@@ -1,63 +1,11 @@
 # SERVERLESS CREATE APP API
 
-Serverless (https://serverless.com) project to create the API the Fractal Developer Portal uses to create, delete and modify apps. It also allows developers to request access to the live APIs.
+Serverless (https://serverless.com) project to create a Cognito User Pool, Identity Pool, API and Usage Plans, Dynamo table for app access.
 
-The Dev portal uses Cognito for user authentication and management. In order to give the logged in user access to the API via Cognito, the ```cognito.yml``` file defines the lambdas that cognito triggers on login/signup. These lambdas create and provide access tokens through cognito to the dev portal app allowing a logged in user access to the other dev portal API endpoints.
+Using Cognito for user authentication and management, a logged-in user gains access to the app API with a token created by Cognito triggered events. The ```cognito.yml``` file defines the lambdas that cognito triggers on login/signup. These lambdas create and provide access tokens through cognito to the dev portal app allowing a logged in user access to the other dev portal API endpoints.
 
 ## Endpoints
 Defined in serverless.yml - Add these yourself when you know what endpoints other than login/signup your app will need to call.
-
-## Creating a new API
-When a new Fractal partner API - both live and sandbox - is created, the app lambdas need to be modified to grant app access to these APIs.
-
-For now, modify the ```editApp.py``` ```edit_app``` function, adding an if clause for the new API:
-```
-if app_info['api'] == <API>:
-    print('Updating app ' + app_id + ' <API> status to ' + new_status)
-    return table.update_item(
-        Key={'appId': app_id},
-        AttributeUpdates={
-            app_<API>_status_col: {'Value': new_status}
-        },
-    )
-```
-Replacing the ```<API>``` with the new API name.
-
-This will modify the API status column in the app to pending or revoked.
-
-When this is done, the Dev Portal FE project will need to be modified to display the new API with its status in the App details page.
-
-For new sandbox APIs, all sandbox apps are auto-authorised to access these plans.
-
-Modify ```createApp.py``` , in ```create_app``` function, add to the ```if can_create``` clause:
-
-```
-<app>_status = "Auto-authorised"
-api_gw_client.create_usage_plan_key(
-    usagePlanId=os.environ['SB_<API>_USAGE_PLAN'],
-    keyId=api_key['id'],
-    keyType='API_KEY'
-)
-
-```
-
-Add the usage plan id for the new API as an environment variable in ```adminEditApps.yml```:
-
-```
-editAdminApp:
-  ...
-  environment:
-    ...
-    LIVE_<API>_USAGE_PLAN: ${opt:<api>Plan}
-    SB_<API>_USAGE_PLAN: ${opt:<api>SBPlan}
-```
-Where ```opt:``` is the serverless way to define a command line parameter. In ```.gitlab-ci.yml``` the usage plan ID must be added to the deploy script for each environment:
-```
-sls deploy ... --<api>Plan <plan_id> --<api>SBPlan <sandbox_plan_id>
-```
-
-### @todo
-Make the functions generic for some list of APIs
 
 ## Installing Serverless 
 
