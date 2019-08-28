@@ -20,7 +20,7 @@ Once the installation process is done you can verify that Serverless is installe
 
 To see which version of serverless you have installed run ```serverless --version```
 
-To run: ```sls deploy```
+To run: ```sls deploy --confile dev --app Example```
 
 To remove: ```sls remove```
 
