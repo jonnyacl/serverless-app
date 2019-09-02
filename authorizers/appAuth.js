@@ -4,10 +4,14 @@ const dynamo = new AWS.DynamoDB();
 exports.authorise = async (event) => {
     const headers = event['headers'];
     const user = headers['x-user'];
+    console.log("User: " + user);
     const appKey = headers['x-api-key'];
-    const trueKey = getAppKey(user);
+    console.log("key: " + appKey);
+    const trueKey = await getAppKey(user);
+    console.log("true key: ");
+    console.log(trueKey)
     if (trueKey.Item) {
-        if (trueKey.Item.appKey == appKey) {
+        if (trueKey.Item.appkey.S == appKey) {
             // generate allowed policy
             return generatePolicy('user', 'Allow', event['methodArn'])
         }
@@ -33,12 +37,15 @@ const generatePolicy = (principalId, effect, resource) => {
     return authResponse;
 }
 
-const getAppKey = (user) => {
+const getAppKey = async (user) => {
     var params = {
         TableName: process.env.APP_KEY_TABLE,
         Key: {
-            "user": user
+            "user": {
+                S: user
+            }
         }
     };
-    return dynamo.get(params);
+    const appKey = await dynamo.getItem(params).promise();
+    return appKey;
 }

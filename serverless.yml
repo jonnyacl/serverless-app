@@ -41,6 +41,7 @@ functions:
                 - Content-Type
                 - Authorization
                 - X-Api-Key
+                - X-User
               methods:
                 - GET
                 - OPTIONS
@@ -49,11 +50,12 @@ functions:
               - Content-Type
               - Authorization
               - X-Api-Key
+              - X-User
             authorizer:
               name: appAuthorizer
-              identitySource: method.request.header.Authorization
+              identitySource: method.request.header.X-Api-Key
               resultTtlInSeconds: 0
-              type: token
+              type: request
             request:
               headers:
                 Content-Type: true
