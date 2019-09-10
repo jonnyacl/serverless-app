@@ -3,5 +3,5 @@ appAuthorizer:
   name: ${opt:app}AppAuthorizer
   description: authorizer for app
   environment:
-    APP_KEY_TABLE: ${opt:app}AppKey
+    APP_KEY_TABLE: ${opt:app}User
   role: ${file(config-${opt:confile}.yml):lambdaArn}
