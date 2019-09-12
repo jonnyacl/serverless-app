@@ -1,4 +1,10 @@
-# SERVERLESS CREATE APP API
+# SERVERLESS CREATE APP
+
+Everything needed for a serverless backend for an app:
+ - API
+ - User auth with cognito
+ - App token generation
+ - DyanmoDB resource creation for storing app data
 
 Serverless (https://serverless.com) project to create a Cognito User Pool, Identity Pool, API and Usage Plans, Dynamo table for app access.
 
