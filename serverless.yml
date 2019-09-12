@@ -10,10 +10,7 @@ package:
   individually: true
   exclude:
     - node_modules/**
-    - config-dev.yml
-    - config-qa.yml
-    - config-prod.yml
-    - config-stg.yml
+    - config.yml
     - package-lock.json
     - README.md
     - models/**
@@ -25,15 +22,15 @@ functions:
   - ${file(authorizers/auth.yml)}
   - ${file(functions/cognito/cognito.yml)}
   # Define all endpoints needed for the app
-  - getBanks:
-      handler: functions/banks.getBanks
-      description: Retrieve banks to display
-      role: ${file(config-${opt:confile}.yml):lambdaArn}
-      name: getBanks
+  - getResource:
+      handler: functions/resource.getResource
+      description: Retrieve resources to display
+      role: ${file(config.yml):lambdaArn}
+      name: getResource
       events:
         - http:
             integration: lambda
-            path: /banks
+            path: /resource
             method: get
             cors:
               origin: '*'
@@ -74,6 +71,12 @@ functions:
                   pattern: '' # Default response method
                 400:
                   pattern: '.*Invalid.*'
+                  template: ${file(templates/ErrorResponse)}
+                403:
+                  pattern: '.*Forbidden.*'
+                  template: ${file(templates/ErrorResponse)}
+                404:
+                  pattern: '.*Not Found.*'
                   template: ${file(templates/ErrorResponse)}
       package:
         include:

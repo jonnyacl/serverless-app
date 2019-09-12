@@ -4,4 +4,4 @@ appAuthorizer:
   description: authorizer for app
   environment:
     APP_KEY_TABLE: ${opt:app}User
-  role: ${file(config-${opt:confile}.yml):lambdaArn}
+  role: ${file(config.yml):lambdaArn}

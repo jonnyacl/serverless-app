@@ -2,7 +2,7 @@ createToken:
   handler: functions/cognito/createToken.go
   name: create${opt:app}AppToken
   description: create a token and add to usage plan for app's api
-  role: ${file(config-${opt:confile}.yml):lambdaArn}
+  role: ${file(config.yml):lambdaArn}
   environment:
     USAGE_PLAN: ${opt:app}AppUsagePlan
     APP_KEY_TABLE: ${opt:app}User
@@ -24,7 +24,7 @@ retrieveToken:
   handler: functions/cognito/getToken.go
   name: retrieve${opt:app}AppToken
   description: retrieve token for app user
-  role: ${file(config-${opt:confile}.yml):lambdaArn}
+  role: ${file(config.yml):lambdaArn}
   environment:
     APP_KEY_TABLE: ${opt:app}User
   events:
