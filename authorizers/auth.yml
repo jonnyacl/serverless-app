@@ -4,4 +4,11 @@ appAuthorizer:
   description: authorizer for app
   environment:
     APP_KEY_TABLE: ${opt:app}User
-  role: ${file(config.yml):lambdaArn}
+    REGION: ${opt:region, 'eu-west-1'}
+    POOL_ID: ${file(config-${opt:confile}.yml):poolId}
+  role: dynamoRole
+  package:
+    include:
+      - authorizers/**
+    exclude:
+      - functions/**

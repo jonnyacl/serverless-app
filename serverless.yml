@@ -1,10 +1,46 @@
 service: ${opt:app}
 
+globalStatusCodes: &globalStatusCodes
+  200:
+    pattern: '' # Default response method
+  400:
+    pattern: '.*\[400\].*'
+    template: ${file(templates/ErrorResponse)}
+  401:
+    pattern: '.*\[401\].*'
+    template: ${file(templates/ErrorResponse)}
+  403:
+    pattern: '.*\[403\].*'
+    template: ${file(templates/ErrorResponse)}
+  404:
+    pattern: '.*\[404\].*'
+    template: ${file(templates/ErrorResponse)}
+  500:
+    pattern: '.*\[500\].*'
+    template: ${file(templates/ErrorResponse)}
+  502:
+    pattern: '.*\[502\].*'
+    template: ${file(templates/ErrorResponse)}
+  504:
+    pattern: '.*\[504\].*'
+    template: ${file(templates/ErrorResponse)}
+
 provider:
   name: aws
   stage: ${opt:stage, 'v1'}
   region: eu-west-1
   runtime: nodejs10.x
+  resourcePolicy:
+    - Effect: Allow
+      Principal: '*'
+      Action: execute-api:Invoke
+      Resource:
+        - execute-api:/*/*/*
+    - Effect: Deny
+      Principal: '*'
+      Action: execute-api:Invoke
+      Resource:
+        - execute-api:/*/*/*
 
 package:
   individually: true
@@ -39,6 +75,8 @@ functions:
                 - Authorization
                 - X-Api-Key
                 - X-User
+                - x-amz-security-token
+                - x-amz-date
               methods:
                 - GET
                 - OPTIONS
@@ -66,21 +104,10 @@ functions:
             response:
               headers:
                 Access-Control-Allow-Origin: "'*'"
-              statusCodes:
-                200:
-                  pattern: '' # Default response method
-                400:
-                  pattern: '.*Invalid.*'
-                  template: ${file(templates/ErrorResponse)}
-                403:
-                  pattern: '.*Forbidden.*'
-                  template: ${file(templates/ErrorResponse)}
-                404:
-                  pattern: '.*Not Found.*'
-                  template: ${file(templates/ErrorResponse)}
+              statusCodes: *globalStatusCodes
       package:
         include:
-          - functions/banks.js
+          - functions/resource.js
         exclude:
           - functions/*.yml
           - functions/cognito/**
@@ -151,7 +178,7 @@ resources:
                 'ForAnyValue:StringLike':
                   'cognito-identity.amazonaws.com:amr': unauthenticated
         Policies:
-          - PolicyName: 'OpAppUnuthorizedPolicy'
+          - PolicyName: 'AppUnauthorizedPolicy'
             PolicyDocument:
               Version: '2012-10-17'
               Statement:
@@ -180,7 +207,7 @@ resources:
                 'ForAnyValue:StringLike':
                   'cognito-identity.amazonaws.com:amr': authenticated
         Policies:
-          - PolicyName: 'OpAppAuthorizedPolicy'
+          - PolicyName: 'AppAuthorizedPolicy'
             PolicyDocument:
               Version: '2012-10-17'
               Statement:
