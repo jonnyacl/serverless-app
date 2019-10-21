@@ -376,7 +376,7 @@ resources:
     AppTable:
       Type: AWS::DynamoDB::Table
       Properties:
-        TableName: ${opt:app}AppKey
+        TableName: ${opt:app}User
         AttributeDefinitions:
           - AttributeName: user
             AttributeType: S
