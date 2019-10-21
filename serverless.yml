@@ -58,15 +58,76 @@ functions:
   - ${file(authorizers/auth.yml)}
   - ${file(functions/cognito/cognito.yml)}
   # Define all endpoints needed for the app
-  - getResource:
-      handler: functions/resource.getResource
-      description: Retrieve resources to display
-      role: ${file(config.yml):lambdaArn}
-      name: getResource
+  - pay:
+      handler: functions/payments/payments.pay
+      description: Pay VAT from trx
+      role: ${file(config-${opt:confile}.yml):lambdaArn}
+      name: payVat
+      environment:
+        PAYMENTS_TABLE: ${opt:app}Payments
+        API_KEY: ${opt:apiKey}
+        PARTNER_ID: ${file(config-${opt:confile}.yml):partnerId}
+        REGION: ${opt:region, 'eu-west-1'}
       events:
         - http:
             integration: lambda
-            path: /resource
+            path: /pay
+            method: post
+            cors:
+              origin: '*'
+              headers: 
+                - Content-Type
+                - Authorization
+                - X-Api-Key
+                - X-User
+                - x-amz-security-token
+                - x-amz-date
+              methods:
+                - POST
+                - OPTIONS
+            private: true
+            headers:
+              - Content-Type
+              - Authorization
+              - X-Api-Key
+              - X-User
+            authorizer:
+              name: appAuthorizer
+              identitySource: method.request.header.X-Api-Key
+              resultTtlInSeconds: 0
+              type: request
+            request:
+              headers:
+                Content-Type: true
+                X-Api-Key: true
+              template:
+                application/json: ${file(templates/MethodRequestPassthrough)}
+              passThrough: WHEN_NO_TEMPLATES
+            response:
+              headers:
+                Access-Control-Allow-Origin: "'*'"
+              statusCodes: *globalStatusCodes
+      package:
+        include:
+          - functions/payments/payments.js
+        exclude:
+          - functions/*.yml
+          - functions/cognito/**
+          - authorizers/**
+  - getTrx:
+      handler: functions/trx/trx.getTrx
+      description: Retrieve vat trx to display
+      role: ${file(config-${opt:confile}.yml):lambdaArn}
+      name: getTrx
+      environment:
+        PAYMENTS_TABLE: ${opt:app}Trx
+        API_KEY: ${opt:apiKey}
+        PARTNER_ID: ${file(config-${opt:confile}.yml):partnerId}
+        REGION: ${opt:region, 'eu-west-1'}
+      events:
+        - http:
+            integration: lambda
+            path: /transactions
             method: get
             cors:
               origin: '*'
@@ -95,9 +156,6 @@ functions:
               headers:
                 Content-Type: true
                 X-Api-Key: true
-              parameters:
-                querystrings:
-                  pg: false
               template:
                 application/json: ${file(templates/MethodRequestPassthrough)}
               passThrough: WHEN_NO_TEMPLATES
@@ -107,14 +165,111 @@ functions:
               statusCodes: *globalStatusCodes
       package:
         include:
-          - functions/resource.js
+          - functions/payments/payments.js
         exclude:
           - functions/*.yml
           - functions/cognito/**
           - authorizers/**
-
+  - getAccounts:
+      handler: functions/accounts/accounts.get
+      description: Retrieve accounts for VAT App
+      role: ${file(config-${opt:confile}.yml):lambdaArn}
+      name: getVatAccounts
+      environment:
+        ACCOUNTS_TABLE: ${opt:app}Accounts
+        API_KEY: ${opt:apiKey}
+        PARTNER_ID: ${file(config-${opt:confile}.yml):partnerId}
+        REGION: ${opt:region, 'eu-west-1'}
+      events:
+        - http:
+            integration: lambda
+            path: /accounts
+            method: get
+            cors:
+              origin: '*'
+              headers: 
+                - Content-Type
+                - Authorization
+                - X-Api-Key
+                - X-User
+                - x-amz-security-token
+                - x-amz-date
+              methods:
+                - GET
+                - OPTIONS
+            private: true
+            headers:
+              - Content-Type
+              - Authorization
+              - X-Api-Key
+              - X-User
+            authorizer:
+              name: appAuthorizer
+              identitySource: method.request.header.X-Api-Key
+              resultTtlInSeconds: 0
+              type: request
+            request:
+              headers:
+                Content-Type: true
+                X-Api-Key: true
+              template:
+                application/json: ${file(templates/MethodRequestPassthrough)}
+              passThrough: WHEN_NO_TEMPLATES
+            response:
+              headers:
+                Access-Control-Allow-Origin: "'*'"
+              statusCodes: *globalStatusCodes
+      package:
+        include:
+          - functions/payments/payments.js
+        exclude:
+          - functions/*.yml
+          - functions/cognito/**
+          - authorizers/**
 resources:
   Resources:
+    dynamoRole:
+      Type: AWS::IAM::Role
+      Properties:
+        RoleName: VAT-Lambda-Dynamo-Role
+        AssumeRolePolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+            - Effect: Allow
+              Principal:
+                Service:
+                  - lambda.amazonaws.com
+              Action: sts:AssumeRole
+        # note that these rights are needed if you want your function to be able to communicate with resources within your vpc
+        ManagedPolicyArns:
+          - arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole
+        Policies:
+          - PolicyName: vatAppDynamoPolicy
+            PolicyDocument:
+              Version: "2012-10-17"
+              Statement:
+                - Effect: Allow # note that these rights are given in the default policy and are required if you want logs out of your lambda(s)
+                  Action:
+                    - logs:CreateLogGroup
+                    - logs:CreateLogStream
+                    - logs:PutLogEvents
+                  Resource:
+                    - 'Fn::Join':
+                      - ':'
+                      -
+                        - 'arn:aws:logs'
+                        - Ref: 'AWS::Region'
+                        - Ref: 'AWS::AccountId'
+                        - 'log-group:/aws/lambda/*:*:*'
+                -  Effect: Allow
+                   Action:
+                     - "dynamodb:*"
+                   Resource:
+                      - "Fn::GetAtt": [ VatAccounts, Arn ]
+                      - "Fn::GetAtt": [ AppTable, Arn ]
+                      - "Fn::GetAtt": [ VatPayments, Arn ]
+                      - "Fn::GetAtt": [ VatTransactions, Arn ]
+
     ApiGatewayRestApi:
       Type: AWS::ApiGateway::RestApi
       Properties:
@@ -222,6 +377,39 @@ resources:
       Type: AWS::DynamoDB::Table
       Properties:
         TableName: ${opt:app}AppKey
+        AttributeDefinitions:
+          - AttributeName: user
+            AttributeType: S
+        KeySchema:
+          - AttributeName: user
+            KeyType: HASH
+        BillingMode: PAY_PER_REQUEST
+    VatAccounts:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${opt:app}Accounts
+        AttributeDefinitions:
+          - AttributeName: user
+            AttributeType: S
+        KeySchema:
+          - AttributeName: user
+            KeyType: HASH
+        BillingMode: PAY_PER_REQUEST
+    VatPayments:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${opt:app}Payments
+        AttributeDefinitions:
+          - AttributeName: user
+            AttributeType: S
+        KeySchema:
+          - AttributeName: user
+            KeyType: HASH
+        BillingMode: PAY_PER_REQUEST
+    VatTransactions:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${opt:app}Trx
         AttributeDefinitions:
           - AttributeName: user
             AttributeType: S

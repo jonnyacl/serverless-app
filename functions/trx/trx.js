@@ -1,0 +1,1 @@
+exports.getTrx = async (event) => {}

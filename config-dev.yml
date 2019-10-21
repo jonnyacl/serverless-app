@@ -1,0 +1,5 @@
+cors: '*'
+poolId: "placeholder"
+fractalApiBaseUrl: "https://api-internal.fractal-dev.co.uk"
+partnerId: 1
+lambdaArn: arn:aws:iam::319909616554:role/service-role/FractalApiRole
