@@ -15,10 +15,11 @@ createToken:
       - functions/cognito/createToken.js
     exclude:
       - functions/*.yml
-      - functions/cognito/*.yml
+      - functions/companies/**
+      - functions/accounts/**
+      - functions/trx/**
+      - functions/payments/**
       - authorizers/**
-      - functions/*.js
-      - functions/cognito/getToken.js
 
 retrieveToken:
   handler: functions/cognito/getToken.go
@@ -36,7 +37,8 @@ retrieveToken:
       - functions/cognito/getToken.js
     exclude:
       - functions/*.yml
-      - functions/cognito/*.yml
+      - functions/trx/**
+      - functions/companies/**
+      - functions/accounts/**
+      - functions/payments/**
       - authorizers/**
-      - functions/*.js
-      - functions/cognito/createToken.js
