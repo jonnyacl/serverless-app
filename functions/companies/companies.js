@@ -10,25 +10,15 @@ exports.connectCompany = async (event) => {
     }
     const compForm = event["body-json"];
     const compName = compForm.companyName;
-    // const comp = await connectCompanyHouse();
-    // const item = {
-    //   'user': { 'S': user },
-    //   'companyName': { 'S': comp.company_name },
-    //   'companyAddress': { 'S': deliverAddress(comp.registered_office_address) },
-    //   'companyYearEnd': { 'S': deliverYearEnd(comp.accounting_reference_date) },
-    //   'companyType': { 'S': comp.type }
-    // };
+    const comp = await connectCompanyHouse(compName);
     var params = {
       TableName: process.env.USER_TABLE,
       Key: {
         user
       },
-      UpdateExpression: "set #com = :c",
-      ExpressionAttributeNames: {
-        "#com": "company"
-      },
+      UpdateExpression: "set company = :c",
       ExpressionAttributeValues: {
-        ":c": compName
+        ":c": comp,
       },
       ReturnValues: "UPDATED_NEW"
     };
