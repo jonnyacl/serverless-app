@@ -36,6 +36,7 @@ const connectCompanyHouse = async (companyName) => {
     const BASE_URI = "https://api.companieshouse.gov.uk/";
     let companyNumber;
     const companyResp = await axios.get(`${BASE_URI}search/companies`, {
+      auth: { username: API_KEY },
       params: {
         q: companyName
       }
