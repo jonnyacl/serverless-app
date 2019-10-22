@@ -1,12 +1,14 @@
 var AWS = require('aws-sdk');
-const dynamo = new AWS.DynamoDB();
+const dynamo = new AWS.DynamoDB.DocumentClient();
 
 exports.get = async (event) => {}
 
 exports.connect = async (event) => {
     try {
+        const user = event.params.header['x-user'];
         const accForm = event["body-json"];
         const item = { 
+            user,
             bankId: accForm.bankId,
             bankName: accForm.bankName,
             accountId: "fakeAcc113",
@@ -19,9 +21,10 @@ exports.connect = async (event) => {
             Item: item, 
             TableName: process.env.ACCOUNTS_TABLE
         };
-        await dynamo.putItem(toPut).promise();
+        await dynamo.put(toPut).promise();
         return item;
     } catch (err) {
+        console.log(err)
         throw new Error('[500] Internal Server Error');
     }
 }
