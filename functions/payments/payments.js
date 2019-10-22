@@ -5,7 +5,7 @@ exports.pay = async (event) => {
         statusCode: 400,
         body: JSON.stringify('Errors'),
     };
-    const apiKey = 'xAezmUprBVaCPW9RmSq901Zhwo9ZF2Xg9PbZHXyE'
+    const apiKey = 'ODPhbzdMs738Gl8F1AWyr7BbdKn9W9i18Q5xQiLM'
     const contentType = 'application/json'
     const partnerId = 'b90a254c452a4ad1b54921a27712765b'
     const token = 'Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJwYXJ0bmVyX25hbWUiOiJGcmFjdGFsIiwiaXNzIjoiQVBJLkZSQUNUQUwiLCJleHAiOjE1NjIxNzE0MTcsInRva2VuX3R5cGUiOiJCZWFyZXIiLCJpYXQiOjE1NjIxNjk2MTcsImp0aSI6ImM5NzA5YzEwLWI2NDAtNCJ9.FyM7CEMeICSfPxPRk1-nPvwKLPBEMaD0r2xXC85E_rI'
@@ -68,7 +68,7 @@ exports.pay = async (event) => {
   
   const getReq = (url) => {
     try {
-        const resp = await axios.get(url, { headers: { "Content-Type": "application/json", "x-partner-id": partnerId, "x-api-key": apiKey, "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJzYW5kYm94VXNlciIsIm5hbWUiOiJGcmFjQm94IiwiaWF0IjoxNTE2MjM5MDIyLCJleHBpcmVzIjoxODAwfQ.A-Xk_RwJu3BZQ7gsUgq7nK4UPJpqIKJtxbBxkz2eJU4"}});
+        const resp = await axios.get(url, { headers: { "Content-Type": "application/json", "x-partner-id": process.env.PARTNER_ID, "x-api-key": process.env.API_KEY,  "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJzYW5kYm94VXNlciIsIm5hbWUiOiJGcmFjQm94IiwiaWF0IjoxNTE2MjM5MDIyLCJleHBpcmVzIjoxODAwfQ.A-Xk_RwJu3BZQ7gsUgq7nK4UPJpqIKJtxbBxkz2eJU4"}});
         return { "payments": resp.data };
     } catch (err) {
         throw new Error('[500] Internal Server Error');
@@ -77,7 +77,7 @@ exports.pay = async (event) => {
   
   const postReq = (url, body) => {
     try {
-        const resp = await axios.post(url, body, { headers: { "Content-Type": "application/json", "x-partner-id": partnerId, "x-api-key": apiKey, "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJzYW5kYm94VXNlciIsIm5hbWUiOiJGcmFjQm94IiwiaWF0IjoxNTE2MjM5MDIyLCJleHBpcmVzIjoxODAwfQ.A-Xk_RwJu3BZQ7gsUgq7nK4UPJpqIKJtxbBxkz2eJU4"}});
+        const resp = await axios.post(url, body, { headers: { "Content-Type": "application/json", "x-partner-id": process.env.PARTNER_ID, "x-api-key": process.env.API_KEY, "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJzYW5kYm94VXNlciIsIm5hbWUiOiJGcmFjQm94IiwiaWF0IjoxNTE2MjM5MDIyLCJleHBpcmVzIjoxODAwfQ.A-Xk_RwJu3BZQ7gsUgq7nK4UPJpqIKJtxbBxkz2eJU4"}});
         return { "response": resp.data };
     } catch (err) {
         throw new Error('[500] Internal Server Error');
