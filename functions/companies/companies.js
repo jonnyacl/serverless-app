@@ -11,15 +11,15 @@ exports.connectCompany = async (event) => {
     const compForm = event["body-json"];
     const compName = compForm.companyName;
     // const comp = await connectCompanyHouse();
-    const item = {
-      'user': { 'S': user },
-      'companyName': { 'S': comp.company_name },
-      'companyAddress': { 'S': deliverAddress(comp.registered_office_address) },
-      'companyYearEnd': { 'S': deliverYearEnd(comp.accounting_reference_date) },
-      'companyType': { 'S': comp.type }
-    };
+    // const item = {
+    //   'user': { 'S': user },
+    //   'companyName': { 'S': comp.company_name },
+    //   'companyAddress': { 'S': deliverAddress(comp.registered_office_address) },
+    //   'companyYearEnd': { 'S': deliverYearEnd(comp.accounting_reference_date) },
+    //   'companyType': { 'S': comp.type }
+    // };
     var params = {
-      TableName: process.env.APP_KEY_TABLE,
+      TableName: process.env.USER_TABLE,
       Key: {
         user
       },
@@ -35,7 +35,7 @@ exports.connectCompany = async (event) => {
     try {
       await documentClient.update(params).promise();
     } catch (error) {
-      console.error("updateUser failed to set company", { error, alertParams })
+      console.error("updateUser failed to set company", { error, params })
       throw new Error("[400] Bad Request");
     }
 }

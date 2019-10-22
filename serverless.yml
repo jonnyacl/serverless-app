@@ -224,16 +224,134 @@ functions:
           - functions/payments/**
           - functions/trx/**
           - authorizers/**
+  - fetchBanks:
+      handler: functions/accounts/banks.get
+      description: Retrieve bank sources
+      role: ${file(config-${opt:confile}.yml):lambdaArn}
+      name: getVatBanks
+      environment:
+        API_KEY: ${opt:apiKey}
+        PARTNER_ID: ${file(config-${opt:confile}.yml):partnerId}
+        REGION: ${opt:region, 'eu-west-1'}
+      events:
+        - http:
+            integration: lambda
+            path: /banks
+            method: get
+            cors:
+              origin: '*'
+              headers: 
+                - Content-Type
+                - Authorization
+                - X-Api-Key
+                - X-User
+                - x-amz-security-token
+                - x-amz-date
+              methods:
+                - GET
+                - OPTIONS
+            private: true
+            headers:
+              - Content-Type
+              - Authorization
+              - X-Api-Key
+              - X-User
+            authorizer:
+              name: appAuthorizer
+              identitySource: method.request.header.X-Api-Key
+              resultTtlInSeconds: 0
+              type: request
+            request:
+              headers:
+                Content-Type: true
+                X-Api-Key: true
+              template:
+                application/json: ${file(templates/MethodRequestPassthrough)}
+              passThrough: WHEN_NO_TEMPLATES
+            response:
+              headers:
+                Access-Control-Allow-Origin: "'*'"
+              statusCodes: *globalStatusCodes
+      package:
+        include:
+          - functions/accounts/**
+        exclude:
+          - functions/*.yml
+          - functions/cognito/**
+          - functions/companies/**
+          - functions/payments/**
+          - functions/trx/**
+          - authorizers/**
+  - connectAccount:
+      handler: functions/accounts/accounts.connect
+      description: Connect account for VAT App
+      role: ${file(config-${opt:confile}.yml):lambdaArn}
+      name: connectAccount
+      environment:
+        ACCOUNTS_TABLE: ${opt:app}Accounts
+        API_KEY: ${opt:apiKey}
+        PARTNER_ID: ${file(config-${opt:confile}.yml):partnerId}
+        REGION: ${opt:region, 'eu-west-1'}
+      events:
+        - http:
+            integration: lambda
+            path: /accounts
+            method: post
+            cors:
+              origin: '*'
+              headers: 
+                - Content-Type
+                - Authorization
+                - X-Api-Key
+                - X-User
+                - x-amz-security-token
+                - x-amz-date
+              methods:
+                - POST
+                - OPTIONS
+            private: true
+            headers:
+              - Content-Type
+              - Authorization
+              - X-Api-Key
+              - X-User
+            authorizer:
+              name: appAuthorizer
+              identitySource: method.request.header.X-Api-Key
+              resultTtlInSeconds: 0
+              type: request
+            request:
+              headers:
+                Content-Type: true
+                X-Api-Key: true
+              template:
+                application/json: ${file(templates/MethodRequestPassthrough)}
+              passThrough: WHEN_NO_TEMPLATES
+            response:
+              headers:
+                Access-Control-Allow-Origin: "'*'"
+              statusCodes: *globalStatusCodes
+      package:
+        include:
+          - functions/accounts/**
+        exclude:
+          - functions/*.yml
+          - functions/cognito/**
+          - functions/companies/**
+          - functions/payments/**
+          - functions/trx/**
+          - authorizers/**
   - companies:
       handler: functions/companies/companies.connectCompany
       description: Retrieve accounts for VAT App
       role: ${file(config-${opt:confile}.yml):lambdaArn}
       name: vatCompanies
       environment:
-        ACCOUNTS_TABLE: ${opt:app}User
+        USER_TABLE: ${opt:app}User
         API_KEY: ${opt:apiKey}
         PARTNER_ID: ${file(config-${opt:confile}.yml):partnerId}
         REGION: ${opt:region, 'eu-west-1'}
+        COMPANYHOUSE_KEY: placeholder
       events:
         - http:
             integration: lambda
