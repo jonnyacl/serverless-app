@@ -1,4 +1,5 @@
 const axios = require("axios");
+
 exports.getTrx = async (event) => {
     console.log('here')
     // TODO implement
@@ -12,26 +13,31 @@ exports.getTrx = async (event) => {
     
     if (method === 'GET') {
       if(event.context['resource-path'] === '/transactions') {
-          return getTransactions()
-      }
+          let trx =  await getTransactions()
+          trx.forEach(t => {
+             t["vat"] = "20%";
+           });
+           console.log(trx);
+         return trx
+        }
     }
-  
-  const getTransactions = () => {
-      let url = baseUrl + '/' + 7 + '/fakeAccount' + '/transactions/'
-      let trx =  getReq(url)
-      trx.forEach(function (element) {
-        element.vat = "20%";
-      });
+return response;
+}
+  const getTransactions = async () => {
+    const baseUrl = 'https://sandbox.fractal-dev.co.uk'
+      let url = baseUrl + '/banking/' + 7 + '/accounts/fakeAccount/transactions/'
+      console.log(url)
+      let trx = await getReq(url)
+      return trx
   }
   
-  const getReq = (url) => {
+  const getReq = async (url) => {
     try {
-        const resp = await axios.post(url, body, { headers: { "Content-Type": "application/json", "x-partner-id": process.env.PARTNER_ID, "x-api-key": process.env.API_KEY, "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJzYW5kYm94VXNlciIsIm5hbWUiOiJGcmFjQm94IiwiaWF0IjoxNTE2MjM5MDIyLCJleHBpcmVzIjoxODAwfQ.A-Xk_RwJu3BZQ7gsUgq7nK4UPJpqIKJtxbBxkz2eJU4"}});
-        return { "transactions": resp.data };
+        const resp = await axios.get(url, { headers: { "Content-Type": "application/json", "x-partner-id": process.env.PARTNER_ID, "x-api-key": process.env.API_KEY, "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJzYW5kYm94VXNlciIsIm5hbWUiOiJGcmFjQm94IiwiaWF0IjoxNTE2MjM5MDIyLCJleHBpcmVzIjoxODAwfQ.A-Xk_RwJu3BZQ7gsUgq7nK4UPJpqIKJtxbBxkz2eJU4"}});
+        return resp.data.results ;
     } catch (err) {
         throw new Error('[500] Internal Server Error');
     }
   }
   
-    return response;
-}
+    

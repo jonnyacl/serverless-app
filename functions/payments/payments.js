@@ -1,4 +1,5 @@
 const axios = require("axios");
+const baseUrl = 'https://sandbox.fractal-dev.co.uk'
 exports.pay = async (event) => {
     // TODO implement
     const response = {
@@ -10,7 +11,7 @@ exports.pay = async (event) => {
     const partnerId = 'b90a254c452a4ad1b54921a27712765b'
     const token = 'Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJwYXJ0bmVyX25hbWUiOiJGcmFjdGFsIiwiaXNzIjoiQVBJLkZSQUNUQUwiLCJleHAiOjE1NjIxNzE0MTcsInRva2VuX3R5cGUiOiJCZWFyZXIiLCJpYXQiOjE1NjIxNjk2MTcsImp0aSI6ImM5NzA5YzEwLWI2NDAtNCJ9.FyM7CEMeICSfPxPRk1-nPvwKLPBEMaD0r2xXC85E_rI'
     const method = event.context['http-method']
-    const baseUrl = 'https://sandbox.fractal-dev.co.uk'
+    
     
     if (method === 'GET') {
       if(event.context['resource-path'] === '/transactions') {
@@ -20,12 +21,17 @@ exports.pay = async (event) => {
       
     if(method === 'POST') {
       if(event.context['resource-path'] === '/pay') {
+        console.log(event["body-json"])
           return postDomesticPayments(event["body-json"])
       }
     }
     
+    return response;
+}
+    
   const getDomesticPayments = (bank, domesticPaymentId) => {
-      let url = baseUrl + '/' + bank + '/domestic-payments/' + domesticPaymentId
+      let url = baseUrl + '/banking/' + bank + '/domestic-payments/' + domesticPaymentId
+      console.log(url)
       return getReq(url)
   }
   
@@ -39,13 +45,14 @@ exports.pay = async (event) => {
       return getReq(url)
   }
   
-  const postDomesticPaymentsConsent = (bank, body) => {
-      let url = baseUrl + '/' + bank + '/domestic-payments-consents/'
+  const postDomesticPaymentsConsent = async (bank, body) => {
+      let url = baseUrl + '/banking/' + bank + '/domestic-payment-consents'
+      console.log(url)
       return postReq(url, body)
       
   }
   
-  const getTransactions = () => {
+  const getTransactions = async () => {
     console.log('Attempting GET trx')
       let url = baseUrl + '/' + 7 + '/fakeAccount' + '/transactions/'
       console.log(url)
@@ -58,31 +65,30 @@ exports.pay = async (event) => {
       return trx
   }
   
-  const postDomesticPayments = (body) => {
+  const postDomesticPayments = async (body) => {
       const bank = body.bankId
-      const paymentBody = postDomesticPaymentsConsent(bank, body)
-      let url = baseUrl + '/' + bank + '/domestic-payments/'
-      let paymentpostresponse =  postReq(url, paymentBody);
-      return getDomesticPayments(bank, paymentpostresponse.Data.DomesticPaymentId)
+      const paymentBody =  await postDomesticPaymentsConsent(bank, body)
+      console.log(paymentBody)
+      let url = baseUrl + '/banking/' + bank + '/domestic-payments/'
+      console.log(url)
+      const paymentpostresponse = await postReq(url, paymentBody);
+       return getDomesticPayments(bank, paymentpostresponse.Data.DomesticPaymentId)
   }
   
-  const getReq = (url) => {
+  const getReq = async (url) => {
     try {
         const resp = await axios.get(url, { headers: { "Content-Type": "application/json", "x-partner-id": process.env.PARTNER_ID, "x-api-key": process.env.API_KEY,  "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJzYW5kYm94VXNlciIsIm5hbWUiOiJGcmFjQm94IiwiaWF0IjoxNTE2MjM5MDIyLCJleHBpcmVzIjoxODAwfQ.A-Xk_RwJu3BZQ7gsUgq7nK4UPJpqIKJtxbBxkz2eJU4"}});
-        return { "payments": resp.data };
+        return resp.data ;
     } catch (err) {
         throw new Error('[500] Internal Server Error');
     }
   }
   
-  const postReq = (url, body) => {
+  const postReq = async (url, body) => {
     try {
         const resp = await axios.post(url, body, { headers: { "Content-Type": "application/json", "x-partner-id": process.env.PARTNER_ID, "x-api-key": process.env.API_KEY, "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJzYW5kYm94VXNlciIsIm5hbWUiOiJGcmFjQm94IiwiaWF0IjoxNTE2MjM5MDIyLCJleHBpcmVzIjoxODAwfQ.A-Xk_RwJu3BZQ7gsUgq7nK4UPJpqIKJtxbBxkz2eJU4"}});
-        return { "response": resp.data };
+        return resp.data ;
     } catch (err) {
         throw new Error('[500] Internal Server Error');
     }
   }
-
-    return response;
-}
