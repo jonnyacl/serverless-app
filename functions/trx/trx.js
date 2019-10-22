@@ -25,25 +25,12 @@ exports.getTrx = async (event) => {
   }
   
   const getReq = (url) => {
-    const response = await axios.get(url, {
-        headers: {
-          Authorization: token,
-          'X-Api-Key': apiKey,
-          "X-Partner-Id": partnerId,
-          Accept: contentType,
-          "Content-Type": contentType,
-        }
-      })
-    .then(function (response) {
-      console.log(response);
-      if (response.items.length != 0) {
-      return response.items;
-      }
-    })
-    .catch(function (error) {
-      console.log(error);
-    });  
-  return response
+    try {
+        const resp = await axios.post(url, body, { headers: { "Content-Type": "application/json", "x-partner-id": process.env.PARTNER_ID, "x-api-key": process.env.API_KEY, "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJzYW5kYm94VXNlciIsIm5hbWUiOiJGcmFjQm94IiwiaWF0IjoxNTE2MjM5MDIyLCJleHBpcmVzIjoxODAwfQ.A-Xk_RwJu3BZQ7gsUgq7nK4UPJpqIKJtxbBxkz2eJU4"}});
+        return { "transactions": resp.data };
+    } catch (err) {
+        throw new Error('[500] Internal Server Error');
+    }
   }
   
     return response;
