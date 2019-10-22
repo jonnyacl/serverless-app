@@ -36,7 +36,7 @@ const connectCompanyHouse = async (companyName) => {
     const BASE_URI = "https://api.companieshouse.gov.uk/";
     let companyNumber;
     const companyResp = await axios.get(`${BASE_URI}search/companies`, {
-      auth: { username: API_KEY },
+      auth: { username: API_KEY, password: "" },
       params: {
         q: companyName
       }
@@ -47,7 +47,7 @@ const connectCompanyHouse = async (companyName) => {
     } else {
       throw new Error("[400] no company number");
     } 
-    const companyData = await axios.get(`${BASE_URI}search/company/${companyNumber}`, {
-      auth: { username: API_KEY }});
+    const companyData = await axios.get(`${BASE_URI}company/${companyNumber}`, {
+      auth: { username: API_KEY, password: "" }});
     return companyData.data;
 }
