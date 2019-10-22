@@ -1,4 +1,4 @@
-var axios = require("axios");
+const axios = require("axios");
 exports.getTrx = async (event) => {
     console.log('here')
     // TODO implement

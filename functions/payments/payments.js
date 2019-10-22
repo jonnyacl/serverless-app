@@ -1,4 +1,4 @@
-var axios = require("axios");
+const axios = require("axios");
 exports.pay = async (event) => {
     // TODO implement
     const response = {
@@ -67,41 +67,21 @@ exports.pay = async (event) => {
   }
   
   const getReq = (url) => {
-    const response =  axios.get(url, {
-        headers: {
-          Authorization: token,
-          'X-Api-Key': apiKey,
-          "X-Partner-Id": partnerId,
-          Accept: contentType,
-          "Content-Type": contentType,
-        }
-      }, function(res) {
-    console.log("Got response: " + res.statusCode);
-    context.succeed();
-  }).on('error', function(e) {
-    console.log("Got error: " + e.message);
-    context.done(null, 'FAILURE');
-  });
-  return response
+    try {
+        const resp = await axios.get(url, { headers: { "Content-Type": "application/json", "x-partner-id": partnerId, "x-api-key": apiKey, "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJzYW5kYm94VXNlciIsIm5hbWUiOiJGcmFjQm94IiwiaWF0IjoxNTE2MjM5MDIyLCJleHBpcmVzIjoxODAwfQ.A-Xk_RwJu3BZQ7gsUgq7nK4UPJpqIKJtxbBxkz2eJU4"}});
+        return { "payments": resp.data };
+    } catch (err) {
+        throw new Error('[500] Internal Server Error');
+    }
   }
   
   const postReq = (url, body) => {
-      const response = axios.post(url, body, {
-        headers: {
-          Authorization: token,
-          'X-Api-Key': apiKey,
-          "X-Partner-Id": partnerId,
-          Accept: contentType,
-          "Content-Type": contentType,
-        }
-      }, function(res) {
-    console.log("POST response: " + res.statusCode);
-    context.succeed();
-  }).on('error', function(e) {
-    console.log("POST error: " + e.message);
-    context.done(null, 'FAILURE');
-  });
-  return response
+    try {
+        const resp = await axios.post(url, body, { headers: { "Content-Type": "application/json", "x-partner-id": partnerId, "x-api-key": apiKey, "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJzYW5kYm94VXNlciIsIm5hbWUiOiJGcmFjQm94IiwiaWF0IjoxNTE2MjM5MDIyLCJleHBpcmVzIjoxODAwfQ.A-Xk_RwJu3BZQ7gsUgq7nK4UPJpqIKJtxbBxkz2eJU4"}});
+        return { "response": resp.data };
+    } catch (err) {
+        throw new Error('[500] Internal Server Error');
+    }
   }
 
     return response;
