@@ -1,7 +1,20 @@
 var AWS = require('aws-sdk');
 const dynamo = new AWS.DynamoDB.DocumentClient();
 
-exports.get = async (event) => {}
+exports.get = async (event) => {
+    const user = event.params.header['x-user'];
+    var params = {
+        TableName : "FracVatAccounts",
+        Key: { user },
+        ExpressionAttributeValues: {
+            ":user": user
+        }
+    };
+    
+    const result = await dynamo.get(params).promise();
+    console.log(result);
+    return result.Item;
+}
 
 exports.connect = async (event) => {
     try {

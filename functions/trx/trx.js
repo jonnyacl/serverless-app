@@ -1,5 +1,6 @@
 const axios = require("axios");
-
+var AWS = require('aws-sdk');
+const dynamo = new AWS.DynamoDB.DocumentClient();
 exports.getTrx = async (event) => {
     console.log('here')
     // TODO implement
@@ -13,7 +14,7 @@ exports.getTrx = async (event) => {
     
     if (method === 'GET') {
       if(event.context['resource-path'] === '/transactions') {
-          let trx =  await getTransactions()
+          let trx =  await getTransactions(event)
           trx.forEach(t => {
              t["vat"] = "20%";
            });
@@ -23,9 +24,10 @@ exports.getTrx = async (event) => {
     }
 return response;
 }
-  const getTransactions = async () => {
+  const getTransactions = async (event) => {
     const baseUrl = 'https://sandbox.fractal-dev.co.uk'
-      let url = baseUrl + '/banking/' + 7 + '/accounts/fakeAccount/transactions/'
+    const account = await accounts(event)
+      let url = baseUrl + '/banking/' + account.bankId + '/accounts/' + account.accountId + '/transactions/'
       console.log(url)
       let trx = await getReq(url)
       return trx
@@ -39,5 +41,20 @@ return response;
         throw new Error('[500] Internal Server Error');
     }
   }
+
+  const accounts = async (event) => {
+    const user = event.params.header['x-user'];
+    var params = {
+        TableName : "FracVatAccounts",
+        Key: { user },
+        ExpressionAttributeValues: {
+            ":user": user
+        }
+    };
+    
+    const result = await dynamo.get(params).promise();
+    console.log(result);
+    return result.Item;
+}
   
     
