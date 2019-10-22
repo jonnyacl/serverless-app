@@ -30,17 +30,6 @@ provider:
   stage: ${opt:stage, 'v1'}
   region: eu-west-1
   runtime: nodejs10.x
-  resourcePolicy:
-    - Effect: Allow
-      Principal: '*'
-      Action: execute-api:Invoke
-      Resource:
-        - execute-api:/*/*/*
-    - Effect: Deny
-      Principal: '*'
-      Action: execute-api:Invoke
-      Resource:
-        - execute-api:/*/*/*
 
 package:
   individually: true
@@ -410,6 +399,10 @@ resources:
                     - 'mobileanalytics:PutEvents'
                     - 'cognito-sync:*'
                   Resource: '*'
+                - Effect: 'Deny'
+                  Action:
+                   - 'apigateway:*'
+                  Resource: '*'
 
     CognitoAuthRole:
       Type: AWS::IAM::Role
@@ -439,6 +432,7 @@ resources:
                     - 'mobileanalytics:PutEvents'
                     - 'cognito-sync:*'
                     - 'cognito-identity:*'
+                    - 'apigateway:*'
                   Resource: '*'
                   
     AppTable:

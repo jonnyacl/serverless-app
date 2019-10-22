@@ -1,4 +1,5 @@
 var axios = require("axios");
+const AWS = require('aws-sdk');
 var documentClient = new AWS.DynamoDB.DocumentClient();
 
 exports.connectCompany = async (event) => {
