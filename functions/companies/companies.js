@@ -1,36 +1,42 @@
 var axios = require("axios");
-const dynamo = new AWS.DynamoDB();
+var documentClient = new AWS.DynamoDB.DocumentClient();
 
 exports.connectCompany = async (event) => {
-    const user = event['userName'];
-    const compName = event.companyName;
-    const comp = await connectCompanyHouse();
+    const user = event.params.header['x-user'];
+    if (!user) {
+      console.error("connect company called without 'x-user' header", event);
+      throw new Error("[400] Bad Request");
+    }
+    const compForm = event["body-json"];
+    const compName = compForm.companyName;
+    // const comp = await connectCompanyHouse();
     const item = {
-            'user': { 'S': user },
-            'companyName': { 'S': comp.company_name },
-            'companyAddress': { 'S': deliverAddress(comp.registered_office_address) },
-            'companyYearEnd': { 'S': deliverYearEnd(comp.accounting_reference_date) },
-            'companyType': { 'S': comp.type }
-        }
-        var toUpdate = {
-            Item: item, 
-            TableName: process.env.APP_KEY_TABLE
-            // UpdateExpression: "set info.rating = :r, info.plot=:p, info.actors=:a",
-            // ExpressionAttributeValues:{
-            //     ":r":5.5,
-            //     ":p":"Everything happens all at once.",
-            //     ":a":["Larry", "Moe", "Curly"]
-            // },
-            // ReturnValues:"UPDATED_NEW"
-        };
-        await dynamo.update(toUpdate, function(err, data) {
-        if (err) {
-            console.error("Unable to update item. Error JSON:", JSON.stringify(err, null, 2));
-        } else {
-            console.log("UpdateItem succeeded:", JSON.stringify(data, null, 2));
-        }
-        });
-        context.done(null, event);
+      'user': { 'S': user },
+      'companyName': { 'S': comp.company_name },
+      'companyAddress': { 'S': deliverAddress(comp.registered_office_address) },
+      'companyYearEnd': { 'S': deliverYearEnd(comp.accounting_reference_date) },
+      'companyType': { 'S': comp.type }
+    };
+    var params = {
+      TableName: process.env.APP_KEY_TABLE,
+      Key: {
+        user
+      },
+      UpdateExpression: "set #com = :c",
+      ExpressionAttributeNames: {
+        "#com": "company"
+      },
+      ExpressionAttributeValues: {
+        ":c": compName
+      },
+      ReturnValues: "UPDATED_NEW"
+    };
+    try {
+      await documentClient.update(params).promise();
+    } catch (error) {
+      console.error("updateUser failed to set company", { error, alertParams })
+      throw new Error("[400] Bad Request");
+    }
 }
 
 const connectCompanyHouse = async (companyName) => {

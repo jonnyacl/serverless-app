@@ -3,14 +3,12 @@ const dynamo = new AWS.DynamoDB();
 
 exports.go = async (event, context) => {
     const user = event['userName'];
-    console.log(`User ${user}`)
     const appKey = await getAppKey(user);
-    
     if (appKey.Item) {
-        console.log(`appkey ${JSON.stringify(appKey.Item.appkey.S)}`)
         event["response"]["claimsOverrideDetails"] = {
             "claimsToAddOrOverride": {
-                "appkey": appKey.Item.appkey.S
+                "appkey": appKey.Item.appkey.S,
+                "company": appKey.Item.company ? appKey.Item.company.S : null,
             }
         }
     } else {
