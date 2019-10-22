@@ -1,5 +1,5 @@
 cors: '*'
 poolId: "eu-west-1_P05iXRrSB"
 fractalApiBaseUrl: "https://api-internal.fractal-dev.co.uk"
-partnerId: 1
+partnerId: "b90a254c452a4ad1b54921a27712765b"
 lambdaArn: arn:aws:iam::319909616554:role/service-role/FractalApiRole
