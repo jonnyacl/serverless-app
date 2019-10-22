@@ -5,6 +5,7 @@ exports.connect = async (event) => {
         const accForm = event["body-json"];
         return { 
             bankId: accForm.bankId,
+            bankName: accForm.bankName,
             accountId: "fakeAcc113",
             SchemeName: "IBAN",
             Identification: "GB83BANK43215378060931",
