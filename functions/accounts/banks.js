@@ -1,6 +1,11 @@
 const axios = require("axios");
 
 exports.get = async (event) => {
-    const url = "https://sandbox.fractal-dev.co.uk/banking";
-    const banks = await axios.get(url, { "x-api-key": process.env.API_KEY, "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJwYXJ0bmVyX25hbWUiOiJGcmFjdGFsIiwiaXNzIjoiQVBJLkZSQUNUQUwiLCJleHAiOjE1NjIxNzE0MTcsInRva2VuX3R5cGUiOiJCZWFyZXIiLCJpYXQiOjE1NjIxNjk2MTcsImp0aSI6ImM5NzA5YzEwLWI2NDAtNCJ9.FyM7CEMeICSfPxPRk1-nPvwKLPBEMaD0r2xXC85E_rI"});
+    try {
+        const url = "https://sandbox.fractal-dev.co.uk/banking";
+        const resp = await axios.get(url, { headers: { "Content-Type": "application/json", "x-partner-id": process.env.PARTNER_ID, "x-api-key": process.env.API_KEY, "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJzYW5kYm94VXNlciIsIm5hbWUiOiJGcmFjQm94IiwiaWF0IjoxNTE2MjM5MDIyLCJleHBpcmVzIjoxODAwfQ.A-Xk_RwJu3BZQ7gsUgq7nK4UPJpqIKJtxbBxkz2eJU4"}});
+        return { "banks": resp.data.results };
+    } catch (err) {
+        throw new Error('[500] Internal Server Error');
+    }
 }
