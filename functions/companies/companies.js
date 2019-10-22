@@ -47,6 +47,7 @@ const connectCompanyHouse = async (companyName) => {
     } else {
       throw new Error("[400] no company number");
     } 
-    const companyData = await axios.get(`${BASE_URI}search/company/${companyNumber}`);
+    const companyData = await axios.get(`${BASE_URI}search/company/${companyNumber}`, {
+      auth: { username: API_KEY }});
     return companyData.data;
 }
