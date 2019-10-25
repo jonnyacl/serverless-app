@@ -1,7 +1,32 @@
 service: ${opt:app}
 
-globalStatusCodes: &globalStatusCodes
+globalGetStatusCodes: &globalGetStatusCodes
   200:
+    pattern: '' # Default response method
+  400:
+    pattern: '.*\[400\].*'
+    template: ${file(templates/ErrorResponse)}
+  401:
+    pattern: '.*\[401\].*'
+    template: ${file(templates/ErrorResponse)}
+  403:
+    pattern: '.*\[403\].*'
+    template: ${file(templates/ErrorResponse)}
+  404:
+    pattern: '.*\[404\].*'
+    template: ${file(templates/ErrorResponse)}
+  500:
+    pattern: '.*\[500\].*'
+    template: ${file(templates/ErrorResponse)}
+  502:
+    pattern: '.*\[502\].*'
+    template: ${file(templates/ErrorResponse)}
+  504:
+    pattern: '.*\[504\].*'
+    template: ${file(templates/ErrorResponse)}
+
+globalPostStatusCodes: &globalPostStatusCodes
+  201:
     pattern: '' # Default response method
   400:
     pattern: '.*\[400\].*'
@@ -28,7 +53,7 @@ globalStatusCodes: &globalStatusCodes
 provider:
   name: aws
   stage: ${opt:stage, 'v1'}
-  region: eu-west-1
+  region: ${opt:region, 'eu-west-1'}
   runtime: nodejs10.x
 
 package:
@@ -47,79 +72,17 @@ functions:
   - ${file(authorizers/auth.yml)}
   - ${file(functions/cognito/cognito.yml)}
   # Define all endpoints needed for the app
-  - pay:
-      handler: functions/payments/payments.pay
-      description: Pay VAT from trx
+  - function:
+      handler: functions/function.go
+      description: execute function
       role: ${file(config-${opt:confile}.yml):lambdaArn}
-      name: payVat
+      name: doFunction
       environment:
-        PAYMENTS_TABLE: ${opt:app}Payments
-        API_KEY: ${opt:apiKey}
-        PARTNER_ID: ${file(config-${opt:confile}.yml):partnerId}
         REGION: ${opt:region, 'eu-west-1'}
       events:
         - http:
             integration: lambda
-            path: /pay
-            method: post
-            cors:
-              origin: '*'
-              headers: 
-                - Content-Type
-                - Authorization
-                - X-Api-Key
-                - X-User
-                - x-amz-security-token
-                - x-amz-date
-              methods:
-                - POST
-                - OPTIONS
-            private: true
-            headers:
-              - Content-Type
-              - Authorization
-              - X-Api-Key
-              - X-User
-            authorizer:
-              name: appAuthorizer
-              identitySource: method.request.header.X-Api-Key
-              resultTtlInSeconds: 0
-              type: request
-            request:
-              headers:
-                Content-Type: true
-                X-Api-Key: true
-              template:
-                application/json: ${file(templates/MethodRequestPassthrough)}
-              passThrough: WHEN_NO_TEMPLATES
-            response:
-              headers:
-                Access-Control-Allow-Origin: "'*'"
-              statusCodes: *globalStatusCodes
-      package:
-        include:
-          - functions/payments/**
-        exclude:
-          - functions/*.yml
-          - functions/cognito/**
-          - functions/companies/**
-          - functions/trx/**
-          - functions/accounts/**
-          - authorizers/**
-  - getTrx:
-      handler: functions/trx/trx.getTrx
-      description: Retrieve vat trx to display
-      role: ${file(config-${opt:confile}.yml):lambdaArn}
-      name: getTrx
-      environment:
-        PAYMENTS_TABLE: ${opt:app}Trx
-        API_KEY: ${opt:apiKey}
-        PARTNER_ID: ${file(config-${opt:confile}.yml):partnerId}
-        REGION: ${opt:region, 'eu-west-1'}
-      events:
-        - http:
-            integration: lambda
-            path: /transactions
+            path: /
             method: get
             cors:
               origin: '*'
@@ -154,253 +117,18 @@ functions:
             response:
               headers:
                 Access-Control-Allow-Origin: "'*'"
-              statusCodes: *globalStatusCodes
+              statusCodes: *globalGetStatusCodes
       package:
         include:
-          - functions/trx/**
+          - functions/function.js
         exclude:
           - functions/*.yml
           - functions/cognito/**
           - functions/companies/**
-          - functions/accounts/**
-          - functions/payments/**
-          - authorizers/**
-  - getAccounts:
-      handler: functions/accounts/accounts.get
-      description: Retrieve accounts for VAT App
-      role: ${file(config-${opt:confile}.yml):lambdaArn}
-      name: getVatAccounts
-      environment:
-        ACCOUNTS_TABLE: ${opt:app}Accounts
-        API_KEY: ${opt:apiKey}
-        PARTNER_ID: ${file(config-${opt:confile}.yml):partnerId}
-        REGION: ${opt:region, 'eu-west-1'}
-      events:
-        - http:
-            integration: lambda
-            path: /accounts
-            method: get
-            cors:
-              origin: '*'
-              headers: 
-                - Content-Type
-                - Authorization
-                - X-Api-Key
-                - X-User
-                - x-amz-security-token
-                - x-amz-date
-              methods:
-                - GET
-                - OPTIONS
-            private: true
-            headers:
-              - Content-Type
-              - Authorization
-              - X-Api-Key
-              - X-User
-            authorizer:
-              name: appAuthorizer
-              identitySource: method.request.header.X-Api-Key
-              resultTtlInSeconds: 0
-              type: request
-            request:
-              headers:
-                Content-Type: true
-                X-Api-Key: true
-              template:
-                application/json: ${file(templates/MethodRequestPassthrough)}
-              passThrough: WHEN_NO_TEMPLATES
-            response:
-              headers:
-                Access-Control-Allow-Origin: "'*'"
-              statusCodes: *globalStatusCodes
-      package:
-        include:
-          - functions/accounts/**
-        exclude:
-          - functions/*.yml
-          - functions/cognito/**
-          - functions/companies/**
-          - functions/payments/**
           - functions/trx/**
-          - authorizers/**
-  - fetchBanks:
-      handler: functions/accounts/banks.get
-      description: Retrieve bank sources
-      role: ${file(config-${opt:confile}.yml):lambdaArn}
-      name: getVatBanks
-      environment:
-        API_KEY: ${opt:apiKey}
-        PARTNER_ID: ${file(config-${opt:confile}.yml):partnerId}
-        REGION: ${opt:region, 'eu-west-1'}
-      events:
-        - http:
-            integration: lambda
-            path: /banks
-            method: get
-            cors:
-              origin: '*'
-              headers: 
-                - Content-Type
-                - Authorization
-                - X-Api-Key
-                - X-User
-                - x-amz-security-token
-                - x-amz-date
-              methods:
-                - GET
-                - OPTIONS
-            private: true
-            headers:
-              - Content-Type
-              - Authorization
-              - X-Api-Key
-              - X-User
-            authorizer:
-              name: appAuthorizer
-              identitySource: method.request.header.X-Api-Key
-              resultTtlInSeconds: 0
-              type: request
-            request:
-              headers:
-                Content-Type: true
-                X-Api-Key: true
-              template:
-                application/json: ${file(templates/MethodRequestPassthrough)}
-              passThrough: WHEN_NO_TEMPLATES
-            response:
-              headers:
-                Access-Control-Allow-Origin: "'*'"
-              statusCodes: *globalStatusCodes
-      package:
-        include:
           - functions/accounts/**
-        exclude:
-          - functions/*.yml
-          - functions/cognito/**
-          - functions/companies/**
-          - functions/payments/**
-          - functions/trx/**
           - authorizers/**
-  - connectAccount:
-      handler: functions/accounts/accounts.connect
-      description: Connect account for VAT App
-      role: ${file(config-${opt:confile}.yml):lambdaArn}
-      name: connectAccount
-      environment:
-        ACCOUNTS_TABLE: ${opt:app}Accounts
-        API_KEY: ${opt:apiKey}
-        PARTNER_ID: ${file(config-${opt:confile}.yml):partnerId}
-        REGION: ${opt:region, 'eu-west-1'}
-      events:
-        - http:
-            integration: lambda
-            path: /accounts
-            method: post
-            cors:
-              origin: '*'
-              headers: 
-                - Content-Type
-                - Authorization
-                - X-Api-Key
-                - X-User
-                - x-amz-security-token
-                - x-amz-date
-              methods:
-                - POST
-                - OPTIONS
-            private: true
-            headers:
-              - Content-Type
-              - Authorization
-              - X-Api-Key
-              - X-User
-            authorizer:
-              name: appAuthorizer
-              identitySource: method.request.header.X-Api-Key
-              resultTtlInSeconds: 0
-              type: request
-            request:
-              headers:
-                Content-Type: true
-                X-Api-Key: true
-              template:
-                application/json: ${file(templates/MethodRequestPassthrough)}
-              passThrough: WHEN_NO_TEMPLATES
-            response:
-              headers:
-                Access-Control-Allow-Origin: "'*'"
-              statusCodes: *globalStatusCodes
-      package:
-        include:
-          - functions/accounts/**
-        exclude:
-          - functions/*.yml
-          - functions/cognito/**
-          - functions/companies/**
-          - functions/payments/**
-          - functions/trx/**
-          - authorizers/**
-  - companies:
-      handler: functions/companies/companies.connectCompany
-      description: Retrieve accounts for VAT App
-      role: ${file(config-${opt:confile}.yml):lambdaArn}
-      name: vatCompanies
-      environment:
-        USER_TABLE: ${opt:app}User
-        API_KEY: ${opt:apiKey}
-        PARTNER_ID: ${file(config-${opt:confile}.yml):partnerId}
-        REGION: ${opt:region, 'eu-west-1'}
-        COMPANYHOUSE_KEY: placeholder
-      events:
-        - http:
-            integration: lambda
-            path: /companies
-            method: post
-            cors:
-              origin: '*'
-              headers: 
-                - Content-Type
-                - Authorization
-                - X-Api-Key
-                - X-User
-                - x-amz-security-token
-                - x-amz-date
-              methods:
-                - POST
-                - OPTIONS
-            private: true
-            headers:
-              - Content-Type
-              - Authorization
-              - X-Api-Key
-              - X-User
-            authorizer:
-              name: appAuthorizer
-              identitySource: method.request.header.X-Api-Key
-              resultTtlInSeconds: 0
-              type: request
-            request:
-              headers:
-                Content-Type: true
-                X-Api-Key: true
-              template:
-                application/json: ${file(templates/MethodRequestPassthrough)}
-              passThrough: WHEN_NO_TEMPLATES
-            response:
-              headers:
-                Access-Control-Allow-Origin: "'*'"
-              statusCodes: *globalStatusCodes
-      package:
-        include:
-          - functions/companies/**
-        exclude:
-          - functions/*.yml
-          - functions/cognito/**
-          - functions/accounts/**
-          - functions/payments/**
-          - functions/trx/**
-          - authorizers/**
+
 resources:
   Resources:
     dynamoRole:
@@ -557,39 +285,6 @@ resources:
       Type: AWS::DynamoDB::Table
       Properties:
         TableName: ${opt:app}User
-        AttributeDefinitions:
-          - AttributeName: user
-            AttributeType: S
-        KeySchema:
-          - AttributeName: user
-            KeyType: HASH
-        BillingMode: PAY_PER_REQUEST
-    VatAccounts:
-      Type: AWS::DynamoDB::Table
-      Properties:
-        TableName: ${opt:app}Accounts
-        AttributeDefinitions:
-          - AttributeName: user
-            AttributeType: S
-        KeySchema:
-          - AttributeName: user
-            KeyType: HASH
-        BillingMode: PAY_PER_REQUEST
-    VatPayments:
-      Type: AWS::DynamoDB::Table
-      Properties:
-        TableName: ${opt:app}Payments
-        AttributeDefinitions:
-          - AttributeName: user
-            AttributeType: S
-        KeySchema:
-          - AttributeName: user
-            KeyType: HASH
-        BillingMode: PAY_PER_REQUEST
-    VatTransactions:
-      Type: AWS::DynamoDB::Table
-      Properties:
-        TableName: ${opt:app}Trx
         AttributeDefinitions:
           - AttributeName: user
             AttributeType: S
